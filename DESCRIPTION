@@ -8,4 +8,4 @@ Authors@R: person("Jari","Oksanen", role=c("aut","cre"),
 Depends: vegan (>= 2.0)
 Description: Tutorial for using 'vegan'. Currently only on ordination with
    a brief side track to classification. 
-License: GPL-2
+License: CC BY-SA
