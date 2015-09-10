@@ -63,7 +63,9 @@ analysis.  Package \texttt{vegan} also has support functions for
 fitting environmental variables and  for ordination graphics.
 \end{abstract}
 
+\microtypesetup{protrusion=false} % turn off in TOC
 \tableofcontents
+\microtypesetup{protrusion=true}
 
 \section{Introduction}
 
@@ -2266,7 +2268,8 @@ or Hult--Sernander--Du~Rietz.
 toLatex(sessionInfo())
 @
 \end{small}
-
+\microtypesetup{protrusion=false}
 \printindex
+\microtypesetup{protrusion=true}
 \end{document}
 \endinput
