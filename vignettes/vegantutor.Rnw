@@ -39,9 +39,17 @@
 \usepackage{mparhack}
 
 %%%
+\usepackage{titling} % for pdfinfo
 %
 \title{Multivariate Analysis of Ecological Communities in R: vegan tutorial}
 \author{Jari Oksanen}
+
+\ifpdf 
+\pdfinfo{
+  /Title (\thetitle)
+  /Author (\theauthor)
+}
+\fi
 \begin{document}
 
 \setkeys{Gin}{width=\marginparwidth}
