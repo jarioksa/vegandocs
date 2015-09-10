@@ -13,7 +13,8 @@
 %\usepackage{alltt}
 \usepackage{ae}
 \usepackage{aecompl}
-%\usepackage{inconsolata}
+\usepackage{inconsolata}
+\usepackage{microtype}
 %%% Index
 \usepackage{makeidx}
 \makeindex
