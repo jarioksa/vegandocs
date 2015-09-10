@@ -1,6 +1,8 @@
 % -*- mode: noweb; noweb-default-code-mode: R-mode; -*-
 %\VignetteIndexEntry{vegan tutorial}
 \documentclass[10pt,a4paper,twoside]{article}
+\usepackage{xmpincl}
+\includexmp{CC_Attribution-ShareAlike_4.0_International}
 \usepackage{graphicx}
 \usepackage{booktabs}
 \usepackage{amsmath}
