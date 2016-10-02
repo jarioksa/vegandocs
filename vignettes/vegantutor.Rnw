@@ -1197,11 +1197,13 @@ The \texttt{vegan} package has three \idxtext{constrained ordination}
 methods which all are constrained versions of basic ordination
 methods:
 \begin{itemize}
-\item Constrained analysis of proximities\index{constrained analysis
-of proximities} (\textsc{cap}) in function
-  \code{capscale} is related to \idxtext{metric scaling}
-  (\code{cmdscale}).  It can handle any dissimilarity measures and
-  performs a linear mapping.
+\item Distance-based redundancy analysis \idxtext{metric scaling}
+  (\code{cmdscale}, \code{wcmdscale}).  It can handle any
+  dissimilarity measures and performs a linear mapping.  The
+  \texttt{vegan} package has two alternative implementations:
+  \code{dbrda} analyses directly dissimilarities and can give negative
+  eigenvalues, and \code{capscale} only analyses the real components
+  of the dissimilarities.
 \item Redundancy analysis\index{redundancy analysis} (\textsc{rda}) in
   function \code{rda} is related to principal components analysis.  It
   is based on Euclidean distances\index{dissimilarity!Euclidean} and
@@ -1230,6 +1232,8 @@ the following class functions are defined for these methods:
 <<echo=false>>=
 tmp <- methods(class = "capscale")
 tmp <- if (length(tmp)==0) "none" else paste(gsub(".capscale", "", tmp), collapse = ", ")
+tmp2 <- methods(class = "dbrda")
+tmp2 <- if (length(tmp2)==0) "none" else paste(gsub(".dbrda", "", tmp2), collapse = ", ")
 @
 \par\begin{small}
 \begin{itemize}
@@ -1238,6 +1242,7 @@ tmp <- if (length(tmp)==0) "none" else paste(gsub(".capscale", "", tmp), collaps
 \item \texttt{rda}:
   \texttt{\Sexpr{paste(gsub(".rda","", methods(class="rda")),collapse=", ")}}
 \item \texttt{capscale}: \texttt{\Sexpr{tmp}}.
+\item \texttt{dbrda}: \texttt{\Sexpr{tmp2}}.
 \end{itemize}
 \end{small}
 Many of these methods are internal functions that users rarely need.
