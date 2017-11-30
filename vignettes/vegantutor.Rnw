@@ -274,8 +274,8 @@ eigenvector methods of ordination.  It is the distance in
 axis orthogonal to all other species, and sites are points in this
 multidimensional hyperspace.  However, Euclidean
 distance\index{dissimilarity!Euclidean} is based on squared
-differences and strongly dominated by single large differences.  Most
-ecologically meaningful dissimilarities are of Manhattan
+differences in species abundances and it is dominated by single large differences.
+Most ecologically meaningful dissimilarities are of Manhattan
 type\index{dissimilarity!Manhattan}, and use differences instead of
 squared differences.  \marginpar{
 \begin{align*}
@@ -301,18 +301,16 @@ d_{jk} &= 1-  \frac{1}{2}\left(\frac{J}{A} + \frac{J}{B} \right) &
 \text{Kulczy{\' n}ski}
 \end{align*}
 }
-Package \texttt{vegan} has function \code{vegdist} with
+Package \texttt{vegan} has function \code{vegdist} with several
+dissimilarity measures that are good for community data, for instance,
 Bray--Curtis, Jaccard and Kulczy{\'n}ski indices.
 \index{dissimilarity!Bray-Curtis}
 \index{dissimilarity!Jaccard}
 \index{dissimilarity!Kulczy{\'n}ski}
-All these are of the Manhattan type and use only first order terms
+All three are of the Manhattan type and use only first order terms
 (sums and differences), and all are relativized by site total
 and reach their maximum value ($1$) when there are no shared species
-between two compared communities.  Function \code{vegdist} is a
-drop-in replacement for standard \textsf{R} function \code{dist},
-and either of these functions can be used in analyses of
-dissimilarities.
+between two compared communities.
 
 There are many confusing aspects in dissimilarity indices.  One is
 that same indices can be written with very different looking
@@ -336,7 +334,7 @@ These three basic indices are regarded as good in detecting gradients.
 In addition, \code{vegdist} function has indices that should satisfy
 other criteria.  Morisita\index{dissimilarity!Morisita},
 Horn--Morisita\index{dissimilarity!Horn-Morisita},
-Raup--Cric,\index{dissimilarity!Raup-Crick}
+Raup--Crick,\index{dissimilarity!Raup-Crick}
 Binomial\index{dissimilarity!binomial} and
 Mountford\index{dissimilarity!Mountford} indices should be able to
 compare sampling units of different sizes.
@@ -359,7 +357,8 @@ unit variance:
 <<>>=
 data(varechem)
 rankindex(scale(varechem), varespec, c("euc","man","bray","jac","kul"))
-@ Bray--Curtis and Jaccard
+@
+Bray--Curtis and Jaccard
 \index{dissimilarity!Bray-Curtis}\index{dissimilarity!Jaccard} are
 non-linearly related, but they have identical rank orders, and their
 rank correlations are identical.  In general, the three recommended
@@ -528,8 +527,7 @@ plot(pro)
 plot(pro)
 @
 }
-In this case the differences were fairly small, and mainly concerned
-two points.  You can use \code{identify} function to identify those
+You can use \code{identify} function to identify those
 points in an interactive session, or you can ask a plot of residual
 differences only:
 <<>>=
@@ -544,15 +542,14 @@ sum of squared arrows in the Procrustes plot.  \idxtext{Procrustes
 rotation} is nonsymmetric, and the statistic would change with
 reversing the order of ordinations in the call.  With argument
 \texttt{symmetric = TRUE}, both solutions are first scaled to unit
-variance, and a more scale-independent and symmetric statistic is
-found (often known as Procrustes $m^2$).
+variance, and a more scale-independent (but still non-symmetric)
+statistic is found (often known as Procrustes $m^2$).
 
 \subsection{Eigenvector methods}
 
-
 Non-metric multidimensional scaling\index{non-metric multidimensional
 scaling} was a hard task, because any kind of dissimilarity measure
-could be used and dissimilarities were nonlinearly mapped into
+could be used and dissimilarities were nonlinearly mapped onto
 ordination.  \marginpar{
 \begin{tabular}{lcc}
 \toprule
@@ -564,10 +561,10 @@ method & metric & mapping \\
 \textsc{ca} & Chi-square & weighted linear\\
 \bottomrule
 \end{tabular}
-} If we accept only certain types of dissimilarities and make a linear
+} If we accept only certain types of dissimilarities and perform linear
 mapping, the ordination becomes a simple task of rotation and
-projection.  In that case we can use eigenvector methods.  Principal
-components analysis\index{principal components analysis}
+projection of species space.  In that case we can use eigenvector methods.
+Principal components analysis\index{principal components analysis}
 (\textsc{pca}) and \idxtext{correspondence analysis} (\textsc{ca})
 are the most important eigenvector methods in community ordination.
 In addition, \idxtext{principal coordinates analysis}
@@ -586,7 +583,7 @@ analysis\index{correspondence analysis} is not as ubiquitous, but
 there are several alternative implementations for that also.  In this
 tutorial I show how to run these analyses with \texttt{vegan}
 functions \code{rda} and \code{cca} which actually were designed
-for constrained analysis.
+for constrained analysis (chapter \ref{sec:constord}, p.~\pageref{sec:constord}).
 
 Principal components analysis\index{principal components analysis} can
 be run as:
@@ -614,9 +611,8 @@ dimension \texttt{2} or columns (species), and then \texttt{sum} takes
 the sum of these values.  Inertia is the sum of all species
 variances.  The eigenvalues sum up to total inertia.  In other words,
 they each ``explain'' a certain proportion of total variance.  The
-first axis ``explains'' \Sexpr{round(vare.pca$CA$eig[1], 1)}/
-\Sexpr{round(vare.pca$tot.chi)} $=$
-\Sexpr{round(100*vare.pca$CA$eig[1]/vare.pca$tot.chi, 1)}~\% of total
+first axis ``explains'' \Sexpr{round(vare.pca$CA$eig[1], 1)}/\Sexpr{round(vare.pca$tot.chi)} $=$
+\Sexpr{round(100*vare.pca$CA$eig[1]/vare.pca$tot.chi, 1)}\,\% of total
 variance.
 
 The standard ordination \texttt{plot} command uses points or labels
@@ -624,32 +620,34 @@ for species and sites. Some people prefer to use biplot arrows for
 species in \textsc{pca} and possibly also for sites. There is a
 special \texttt{biplot} function for this purpose:
 <<a>>=
-biplot(vare.pca, scaling = -1)
+biplot(vare.pca, correlation = TRUE)
 @
 \marginpar{
 <<fig=true,echo=false,results=hide>>=
 <<a>>
 @
 }
-For this graph we specified \texttt{scaling = -1}. The results are
+For this graph we specified \texttt{correlation = TRUE}. The results are
 scaled only when they are accessed, and we can flexibly change the
 scaling in \texttt{plot}, \code{biplot} and other commands. The
-negative values mean that species scores are divided by the species
+\texttt{correlation} argument means that species scores are divided by the species
 standard deviations so that abundant and scarce species will be
 approximately as far away from the origin.
 
-The species ordination looks somewhat unsatisfactory: only reindeer
+The  default species ordination withot \texttt{correlation} argument
+looks somewhat unsatisfactory: only reindeer
 lichens (\emph{Cladina}) and \emph{Pleurozium schreberi} are visible,
 and all other species are crowded at the origin.  This happens because
 \idxtext{inertia} was variance, and only abundant species with high
 variances are worth explaining (but we could hide this in
-\texttt{plot} by setting negative scaling).  Standardizing all species
+\texttt{plot} by setting \texttt{correlation = TRUE}).
+Standardizing all species
 to unit variance, or using correlation coefficients instead of
 covariances will give a more balanced ordination:
 <<>>=
 vare.pca <- rda(varespec, scale = TRUE)
 vare.pca
-plot(vare.pca, scaling = 3)
+plot(vare.pca, scaling = "symmetric")
 @
 Now \idxtext{inertia} is correlation, and the correlation of a variable with
 itself is one. Thus the total inertia is equal to the number of
@@ -747,16 +745,15 @@ plot(vare.dca, display="sites")
 Function \code{decorana} finds only four axes.  Eigenvalues are
 defined as shrinkage values in weighted averages, similarly as in
 \code{cca} above.  The ``Decorana values'' are the numbers that the
-original programme returns as ``eigenvalues'' --- I have no idea of
-their possible meaning, and they should not be used.  Most often
-people comment on axis lengths, which sometimes are called ``gradient
-lengths''.  The etymology is obscure: these are not gradients, but
+original programme returns as ``eigenvalues'', but they should not be used.
+Most often people comment on axis lengths, which sometimes are called
+``gradient lengths''.  The etymology is obscure: these are not gradients, but
 ordination axes.  It is often said that if the axis length is shorter
 than two units, the data are linear, and \textsc{pca}\index{principal
-components analysis} should be used.  This is only folklore and not
+components analysis} should be used.  This is folklore and not
 based on research which shows that \textsc{ca}\index{correspondence
 analysis} is at least as good as \textsc{pca} with short gradients,
-and usually better.
+and always better with longer gradients.
 \marginpar{%
 <<fig=true,echo=false>>=
 plot(vare.dca, display="sites")
@@ -775,9 +772,9 @@ species: see help pages for the needed arguments.  Actually,
 \code{cca} as well.
 
 There is a school of thought that regards \textsc{dca}\index{detrended
-correspondence analysis} as the method of choice in unconstrained
-ordination.  However, it seems to be a fragile and vague back of
-tricks that is better avoided.
+  correspondence analysis} as the method of choice in unconstrained
+ordination.  However, it seems to be a fragile and vague bag of tricks
+that is better avoided.
 
 \subsection{Ordination graphics}
 \label{sec:orditorp}
@@ -1168,6 +1165,7 @@ equal weights.
 % but it is difficult to imagine a situation where this makes sense.
 
 \section{Constrained ordination}
+\label{sec:constord}
 \index{constrained ordination}
 
 In unconstrained ordination we first find the major compositional
