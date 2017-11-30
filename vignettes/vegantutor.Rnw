@@ -1282,7 +1282,8 @@ plot(vare.cca)
 }
 <<>>=
 plot(vare.cca)
-@ Now the ordination diagram also has arrows for constraints.  These
+@
+Now the ordination diagram also has arrows for constraints.  These
 have similar interpretation as fitted vectors: the arrow points to the
 direction of the gradient, and its length indicates the strength of
 the variable in this dimensionality of solution.  The vectors will be
