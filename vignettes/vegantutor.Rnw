@@ -44,7 +44,7 @@
 \title{Multivariate Analysis of Ecological Communities in R: vegan tutorial}
 \author{Jari Oksanen}
 
-\ifpdf 
+\ifpdf
 \pdfinfo{
   /Title (\thetitle)
   /Author (\theauthor)
@@ -128,8 +128,7 @@ ordination methods, or my lectures, for firmer theoretical background.
 \index{non-metric multidimensional scaling}
 
 Non-metric multidimensional scaling can be performed using
-\code{isoMDS} function in the \texttt{MASS}
-package\index{package!MASS}.  This function needs dissimilarities as
+\code{monoMDS} function. This function needs dissimilarities as
 input.  Function \code{vegdist} in \texttt{vegan} contains
 dissimilarities which are found good in community ecology.  The
 default is \indexrev{Bray-Curtis}{dissimilarity}, nowadays often known
@@ -137,18 +136,15 @@ as \indexrev{Steinhaus}{dissimilarity}, or in Finland as S{\o}rensen
 index.  The basic steps are:
 <<>>=
 library(vegan)
-library(MASS)
 data(varespec)
 vare.dis <- vegdist(varespec)
-vare.mds0 <- isoMDS(vare.dis)
-@ 
-The default is to find two dimensions and use \idxtext{metric
-scaling} (\code{cmdscale}) as the starting solution.  The solution
-is iterative, as can be seen from the tracing information (this can be
-suppressed setting \texttt{trace = F}).
+vare.mds0 <- monoMDS(vare.dis)
+@
+The default is to find two dimensions and use random configuration
+as the starting solution.  The solution
+is iterative, and there is no guaranteed convergence.
 
-The results of \code{isoMDS} is a list (items
-\texttt{\Sexpr{paste(names(vare.mds0), collapse=", ")}}) for the
+The results of \code{monoMDS} is a  long list including the final
 configuration and the stress.  Stress\index{stress} $S$ is a statistic
 of goodness of fit, and it is a function of and non-linear monotone
 transformation of observed dissimilarities $\theta(d)$ and ordination
@@ -159,33 +155,31 @@ distances $\tilde d$.  \marginpar{$$S = \sqrt{\frac{\sum_{i \neq j}
 \textsc{Nmds}\index{non-metric multidimensional scaling} maps observed
 community dissimilarities nonlinearly onto ordination space and it can
 handle nonlinear species responses of any shape.  We can inspect the
-mapping using function \code{Shepard} in
-\texttt{MASS}\index{package!MASS} package, or a simple wrapper
-\code{stressplot} in \texttt{vegan}:
+mapping using function \code{stressplot}:
 <<a>>=
-stressplot(vare.mds0, vare.dis)
+stressplot(vare.mds0)
 @
 \marginpar{%
 <<echo=false,fig=true>>=
 <<a>>
-@ 
-} 
+@
+}
 Function \code{stressplot} draws a Shepard plot where ordination
 distances are plotted against community dissimilarities, and the fit
 is shown as a monotone step line.  In addition, \code{stressplot}
 shows two correlation like statistics of goodness of fit.  The
-correlation based on stress is $R^2 = 1 - S^2$.  The ``fit-based
+correlation based on \idxtext{stress} is $R^2 = 1 - S^2$.  The ``fit-based
 $R^2$'' is the correlation between the fitted values $\theta(d)$ and
 ordination distances $\tilde d$, or between the step line and the
 points.  This should be linear even when the fit is strongly curved
 and is often known as the ``linear fit''.  These two correlations are
-both based on the residuals in the Shepard plot, but they differ in
+both based on the residuals in the \idxtext{Shepard plot}, but they differ in
 their null models.  In linear fit, the null model is that all
 ordination distances are equal, and the fit is a flat horizontal line.
 This sounds sensible, but you need $N-1$ dimensions for the null model
 of $N$ points, and this null model is geometrically impossible in the
 ordination space.  The basic stress uses the null model where all
-observations are put in the same point, which is geometrically
+observations are put in the one singular point, which is geometrically
 possible.  Finally a word of warning: you sometimes see that people
 use correlation between community dissimilarities and ordination
 distances.  This is dangerous and misleading since
@@ -211,7 +205,7 @@ The iterative search is very difficult in
 \textsc{nmds}\index{non-metric multidimensional scaling}, because of
 nonlinear relationship between ordination and original
 dissimilarities.  The iteration easily gets trapped into
-\idxtext{local optimum} instead of finding the global optimum.
+\idxtext{local optimum} instead of finding the \idxtext{global optimum}.
 Therefore it is recommended to use several random starts, and select
 among similar solutions with smallest stresses.  This may be tedious,
 but \texttt{vegan} has function \code{metaMDS} which does this, and
@@ -231,7 +225,7 @@ plot(vare.mds, type = "t")
 We did not calculate dissimilarities in a separate step, but we gave
 the original data matrix as input.  The result is more complicated
 than previously, and has quite a few components in addition to those
-in \code{isoMDS}\index{non-metric multidimensional scaling} results:
+in \code{monoMDS}\index{non-metric multidimensional scaling} results:
 \texttt{\Sexpr{paste(names(vare.mds), collapse=", ")}}.
 The function wraps recommended procedures into
 one command.  So what happened here?
@@ -245,9 +239,9 @@ one command.  So what happened here?
   forgot to think about them in the initial analysis.
 \item Function used Bray--Curtis
   dissimilarities\index{dissimilarity!Bray-Curtis}.
-\item Function run \code{isoMDS} with several random starts, and
+\item Function run \code{monoMDS} with several random starts, and
   stopped either after a certain number of tries, or after finding two
-  similar configurations with minimum stress.  In any case, it
+  similar configurations with minimum \idxtext{stress}.  In any case, it
   returned the best solution.
 \item Function rotated the solution so that the largest variance of
   site scores will be on the first axis.
@@ -352,9 +346,9 @@ Gower\index{dissimilarity!Gower} indices should have better
 theoretical properties.
 
 Function \code{metaMDS} used \indexrev{Bray-Curtis}{dissimilarity} as
-default, which usually is a good choice.  Jaccard 
+default, which usually is a good choice.  Jaccard
 (Ru{\v z}i{\v c}ka)\index{dissimilarity!Jaccard}
-\index{dissimilarity!Ru{\v z}i{\v c}ka} index has identical rank order, 
+\index{dissimilarity!Ru{\v z}i{\v c}ka} index has identical rank order,
 but has better metric
 properties, and probably should be preferred. Function
 \code{rankindex} in \texttt{vegan} can be used to study which of the
@@ -409,10 +403,10 @@ look more similar than two sites sharing some species.  This can be
 cured by standardizing data.  Since Euclidean distances are based on
 squared differences, a natural transformation is to standardize sites
 to equal sum of squares, or to their vector norm using function
-\code{decostand}:\index{standardization!norm} 
+\code{decostand}:\index{standardization!norm}
 <<>>=
 dis <- vegdist(decostand(varespec, "norm"), "euclid")
-@ 
+@
 This gives chord distances\index{dissimilarity!chord} which reach a
 maximum limit of $\sqrt{2}$ when there are no shared species between
 two sites.  Another recommended alternative is Hellinger
@@ -420,7 +414,7 @@ distance\index{dissimilarity!Hellinger}\index{standardization!Hellinger}
 which is based on square roots of sites standardized to unit total:
 <<>>=
 dis <- vegdist(decostand(varespec, "hell"), "euclidean")
-@ 
+@
 Despite standardization, these still are Euclidean
 distances\index{dissimilarity!Euclidean} with all their good
 properties, but for transformed data.  Actually, it is often useful to
@@ -520,11 +514,11 @@ two ordinations.  Package \texttt{vegan} has function
 \code{procrustes} to perform Procrustes analysis.
 
 How much did we gain with using \code{metaMDS} instead of default
-\code{isoMDS}?
+\code{monoMDS}?
 <<>>=
 tmp <- wisconsin(sqrt(varespec))
 dis <- vegdist(tmp)
-vare.mds0 <- isoMDS(dis, trace = 0)
+vare.mds0 <- monoMDS(dis)
 pro <- procrustes(vare.mds, vare.mds0)
 pro
 plot(pro)
@@ -544,7 +538,7 @@ plot(pro, kind = 2)
 \marginpar{%
 <<fig=true,echo=false>>=
 plot(pro, kind=2)
-@ 
+@
 } The descriptive statistic is ``Procrustes sum of squares'' or the
 sum of squared arrows in the Procrustes plot.  \idxtext{Procrustes
 rotation} is nonsymmetric, and the statistic would change with
@@ -682,7 +676,7 @@ have to explain all species equally.  We should not look blindly at
 percentages, but the result we get.
 
 Correspondence analysis\index{correspondence analysis} is very similar
-to \textsc{pca}: 
+to \textsc{pca}:
 <<>>=
 vare.ca <- cca(varespec)
 vare.ca
@@ -691,7 +685,7 @@ plot(vare.ca)
 \marginpar{%
 <<fig=true,echo=false>>=
 plot(vare.ca)
-@ 
+@
 } Now the inertia is called \Sexpr{vare.ca$inertia}.  Correspondence
 analysis is based on Chi-squared
 distance,\index{dissimilarity!Chi-square} and the \idxtext{inertia} is the
@@ -713,11 +707,11 @@ plot(vare.ca, scaling = 1)
 \marginpar{%
 <<fig=true,echo=false>>=
 <<a>>
-@ 
+@
 } We already saw an example of \texttt{scaling = 3} or symmetric
 scaling in \textsc{pca}.  The other two integers mean that either
 species are weighted averages of sites (\texttt{2}) or sites are
-weighted averages of species (\texttt{1}).  When we take 
+weighted averages of species (\texttt{1}).  When we take
 \idxtext{weighted averages}, the range of averages shrinks from the
 original values.  The shrinkage factor is equal to the eigenvalue of
 \textsc{ca}, which has a theoretical maximum of 1.
@@ -766,7 +760,7 @@ and usually better.
 \marginpar{%
 <<fig=true,echo=false>>=
 plot(vare.dca, display="sites")
-@ 
+@
 }
 
 The current data set is homogeneous, and the effects of
@@ -841,7 +835,7 @@ There is an additional problem in plotting species ordination with
 these data:
 <<>>=
 names(BCI)[1:5]
-@ 
+@
 The data set uses full species names, and there is no way of fitting
 those in ordination graphs.  There is a utility function
 \code{make.cepnames} in \texttt{vegan} to abbreviate Latin names:
@@ -1262,7 +1256,7 @@ vare.cca
 @
 The output is similar as in unconstrained ordination.
 Now the total \idxtext{inertia} is decomposed into constrained and
-unconstrained 
+unconstrained
 components.  There were three constraints, and the rank of constrained
 component is three.  The rank of unconstrained component is 20,
 when it used to be 23 in the previous analysis.  The rank is the same as
@@ -1295,7 +1289,7 @@ have similar interpretation as fitted vectors: the arrow points to the
 direction of the gradient, and its length indicates the strength of
 the variable in this dimensionality of solution.  The vectors will be
 of unit length in full rank solution, but they are projected to the
-plane used in the plot.  
+plane used in the plot.
 
 The \textbf{vegan3d} provides a primitive 3D plotting
 function \code{ordiplot3d} (which needs user interaction for final
@@ -1537,7 +1531,7 @@ on a firm theory, and therefore we also ask for permutation tests at
 each step. In ideal case, all included terms should be significant and
 all excluded terms insignificant in the final model.  The
 \texttt{scope} must be given as a \texttt{list} a formula, but we can
-extract this from fitted models using function \texttt{formula}. 
+extract this from fitted models using function \texttt{formula}.
 The following example begins with an
 unconstrained model \texttt{mod0} and steps towards the previously
 fitted maximum model \texttt{mod1}:
@@ -1649,7 +1643,7 @@ single factor constraint:
 dune.cca <- cca(dune ~ Management, dune.env)
 plot(dune.cca, display = c("lc", "wa"), type = "p")
 ordispider(dune.cca, col="blue")
-@ 
+@
 The interpretation is similar as in discriminant analysis: \textsc{lc} scores\index{LC scores} give the predicted class centroids, and \textsc{wa} scores\index{WA scores} give the predicted values.  For distinct classes, there is no overlap among groups.  In general, the length of \texttt{ordispider} segments is a visual image of \idxtext{species--environment correlation}.  \marginpar{%
 <<fig=true,echo=false>>=
 plot(dune.cca, display = c("lc", "wa"), type="p")
@@ -1852,7 +1846,7 @@ data can be either dissimilarities or data frame, and in the latter
 case \code{adonis} uses \code{vegdist} to find the dissimilarities.
 <<>>=
 adonis(betad ~ Management, dune.env, perm=200)
-@ 
+@
 The models can be more complicated, and sequential test of
 permutational ANOVA\index{permutation tests} is performed if there are
 several parameters:
@@ -2132,7 +2126,7 @@ not used in \idxtext{clustering}.  The only continuous variable in the Dune data
 is the thickness of the A1 horizon:
 <<a>>=
 boxplot(A1 ~ grp, data=dune.env, notch = TRUE)
-@ 
+@
 If we wish, we may use all normal statistical methods with factors, such as functions \code{lm} or \code{aov} for formal testing of ``significance'' of clusters.  Classification can be compared against external factor variables as well.  However, \texttt{vegan} does not provide any tools for this.  It may be best to see the \indexrev{labdsv}{package} and its tutorial for this purpose.  \marginpar{%
 <<fig=true,echo=false>>=
 <<a>>
