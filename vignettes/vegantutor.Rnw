@@ -1194,13 +1194,13 @@ The \texttt{vegan} package has three \idxtext{constrained ordination}
 methods which all are constrained versions of basic ordination
 methods:
 \begin{itemize}
-\item Distance-based redundancy analysis \idxtext{metric scaling}
-  (\code{cmdscale}, \code{wcmdscale}).  It can handle any
-  dissimilarity measures and performs a linear mapping.  The
-  \texttt{vegan} package has two alternative implementations:
-  \code{dbrda} analyses directly dissimilarities and can give negative
-  eigenvalues, and \code{capscale} only analyses the real components
-  of the dissimilarities.
+\item Distance-based redundancy analysis (db\textsc{rda}) is related
+  to metric scaling and can handle any dissimilarity measures and
+  performs a linear mapping.  The \texttt{vegan} package has two
+  alternative implementations: \code{dbrda} analyses directly
+  dissimilarities and can give negative eigenvalues, and
+  \code{capscale} only analyses the real components of the
+  dissimilarities.
 \item Redundancy analysis\index{redundancy analysis} (\textsc{rda}) in
   function \code{rda} is related to principal components analysis.  It
   is based on Euclidean distances\index{dissimilarity!Euclidean} and
@@ -1220,12 +1220,13 @@ examples mainly use \code{cca}, but other methods can be used
 similarly.  Actually, the results are similarly structured, and they
 inherit properties from each other.  For historical reasons,
 \code{cca} is the basic method, and \code{rda} inherits properties
-from it.  Function \code{capscale} inherits directly from
-\code{rda}, and through this from \code{cca}.  Many functions,
-are common with all these methods, and there are
-specific functions only if the method deviates from its ancestor.  In
-\texttt{vegan} version \Sexpr{packageDescription("vegan")$Version}
-the following class functions are defined for these methods:
+from it.  Function \code{capscale} inherits directly from \code{rda},
+and through this from \code{cca}, and \code{dbrda} inherits from
+\code{cca}.  Many functions, are common with all these methods, and
+there are specific functions only if the method deviates from its
+ancestor.  In \texttt{vegan} version
+\Sexpr{packageDescription("vegan")$Version} the following class
+functions are defined for these methods:
 <<echo=false>>=
 tmp <- methods(class = "capscale")
 tmp <- if (length(tmp)==0) "none" else paste(gsub(".capscale", "", tmp), collapse = ", ")
@@ -1261,23 +1262,23 @@ The output is similar as in unconstrained ordination.
 Now the total \idxtext{inertia} is decomposed into constrained and
 unconstrained
 components.  There were three constraints, and the rank of constrained
-component is three.  The rank of unconstrained component is 20,
+component is three.
+The rank of unconstrained component is 20,
 when it used to be 23 in the previous analysis.  The rank is the same as
 the number of axes: you have 3 constrained axes and 20 unconstrained
 axes.  In some cases, the ranks may be lower than the number of
 constraints: some of the constraints are dependent on each other,
-and they are aliased in the analysis, and an informative message is
-printed with the result.
+and they are aliased\index{alias} in the analysis, and an informative
+message is printed with the result.
 
 It is very common to calculate the proportion of constrained inertia
-from the total \idxtext{inertia}.  However, total inertia does not
-have a clear meaning in \textsc{cca}\index{constrained correspondence
-analysis}, and the meaning of this proportion is just as obscure.
-In \textsc{rda}\index{redundancy analysis} this would be the
-proportion of variance (or correlation).  This may have a clearer
-meaning, but even in this case most of the total \idxtext{inertia} may
-be random noise.  It may be better to concentrate on results instead
-of these proportions.
+from the total \idxtext{inertia}.  In \textsc{rda}\index{redundancy
+  analysis} this would be the proportion of variance explained by the
+constraints.  This is a conventional indicator of goodness of fit, but
+most of the total \idxtext{inertia} may be random noise, and we
+explain a low proportion of total inertia although we find a strong
+signal and informative results.  It may be better to concentrate on
+results instead of these proportions.
 
 Basic plotting works just like earlier:
 \marginpar{
@@ -1288,7 +1289,7 @@ plot(vare.cca)
 <<>>=
 plot(vare.cca)
 @
-Now the ordination diagram also has arrows for constraints.  These
+Now the ordination diagram adds arrows for constraints.  These
 have similar interpretation as fitted vectors: the arrow points to the
 direction of the gradient, and its length indicates the strength of
 the variable in this dimensionality of solution.  The vectors will be
@@ -1296,8 +1297,7 @@ of unit length in full rank solution, but they are projected to the
 plane used in the plot.
 
 The \textbf{vegan3d} provides a primitive 3D plotting
-function \code{ordiplot3d} (which needs user interaction for final
-graphs) that shows all arrows in full length:
+function \code{ordiplot3d} that shows all arrows in full length:
 <<>>=
 library(vegan3d)
 ordiplot3d(vare.cca, type = "h")
@@ -1308,7 +1308,7 @@ ordiplot3d(vare.cca, type="h")
 @
 }
 With function \code{ordirgl} you can also inspect 3D dynamic plots
-that can be spinned or zoomed into with your mouse.
+that can be spinned or zoomed interactively with your mouse.
 
 The formula interface works with factor variables as well:
 <<>>=
@@ -1327,10 +1327,7 @@ Internally \textsf{R} expressed these four levels as three \idxtext{contrasts}
 (sometimes called ``dummy variables'').  The applied contrasts look
 like this:
 <<echo=false>>=
-tmp <- model.matrix(~ Management, data=dune.env)
-rownames(tmp) <- as.character(dune.env$Management)
-tmp <- tmp[,-1]
-unique(tmp)
+with(dune.env, contrasts(Management))
 @
 We do not need but three variables to express four levels: if there is number
 one in a column, the observation belongs to that level, and if there is
@@ -1343,10 +1340,7 @@ In addition to these ordinary factors, \textsf{R} also knows
 \texttt{dune.env} is defined as an ordered four-level factor.  In this
 case the \idxtext{contrasts} look different:
 <<echo=false>>=
-tmp <- model.matrix(~ Moisture, data=dune.env)
-rownames(tmp) <- as.character(dune.env$Moisture)
-tmp <- unique(tmp[,-1])
-tmp[order(tmp[,1]), ]
+with(dune.env, contrasts(Moisture))
 @
 
 \textsf{R} uses polynomial contrasts: the linear term \texttt{L} is
@@ -1382,7 +1376,7 @@ with interactions or polynomials may be difficult to interpret.
 \index{constrained ordination}
 
 The significance of all terms together can be assessed using
-\idxtext{permutation tests}: the dat are permuted randomly and the model
+\idxtext{permutation tests}: the data are permuted randomly and the model
 is refitted.  When constrained inertia in permutations is nearly
 always lower than observed constrained \idxtext{inertia}, we say that
 constraints are significant.
@@ -1408,25 +1402,15 @@ F =
 $$
 }
 You should not pay any attention to its numeric values or to the
-numbers of degrees of freedom, since this ``pseudo-$F$'' has nothing
+numbers of degrees of freedom, since this ``pseudo-$F$'' has little
 to do with the real $F$, and the only way to assess its
 ``significance'' is permutation.  In simple models like the one
 studied here we could directly use inertia in testing, but the
-``pseudo-$F$'' is needed in more complicated model including
-``partialled'' terms.
+``pseudo-$F$'' is needed in more complicated models.
 
-The number of permutations was not specified in the mock
-\code{anova} function.  The function tries to be lazy: it continues
-permutations only as long as it is uncertain whether the final
-$P$-value will be below or above the critical value (usually $P =
-0.05$). If the observed inertia is never reached in permutations, the
-function may stop after 200 permutations, and if it is very often
-exceeded, it may stop after 100 permutations.  When we are close to
-the critical level, the permutations may continue to thousands.  In
-this way the calculations are fast when this is possible, but they are
-continued longer in uncertain cases.  If you want to have a fixed
-number of iterations, you must specify that in \code{anova} call
-or directly use the underlying function \code{permutest.cca}
+The permutations are based on \texttt{permute} package which allows also
+powerful restricted permutation models. Please consult the vignette of
+the \texttt{permute} package for deeper insight.
 
 In addition to the overall test for all constraints together, we can
 also analyse single terms or axes by setting argument \texttt{by}. The
@@ -1434,27 +1418,28 @@ following command analyses all terms separately in a sequential
 (``Type I'') test:
 <<>>=
 mod <- cca(varespec ~ Al + P + K, varechem)
-anova(mod, by = "term", step=200)
+anova(mod, by = "term")
 @
-All terms are compared against the same residuals, and there is no
-heuristic for the number permutations.  The test is sequential, and
+All terms are compared against the same residuals.
+The test is sequential, and
 the order of terms will influence the results, unless the terms are
-uncorrelated.  In this case the same number of permutations will be
-used for all terms. The sum of test statistics (\texttt{ChiSquare}) for
+uncorrelated. The sum of test statistics (\texttt{ChiSquare}) for
 terms is the same as the \texttt{Model} test statistic in the overall
 test.
 
-``Type III'' tests analyse the marginal effects when each term is
+``Type III'' tests analyse the marginal effects when each term in turn is
 eliminated from the model containing all other terms:
 <<>>=
 anova(mod, by = "margin", perm=500)
 @
 The marginal effects are independent of the order of the terms, but
-correlated terms will get higher (``worse'') $P$-values.  Now the the
+correlated terms will get higher (``worse'') $P$-values.  The
 sum of test statistics is not equal to the \texttt{Model} test
 statistic in the overall test, unless the terms are uncorrelated.
 
-We can also ask for a test of individual axes:
+We can also ask for a test of individual axes, but you should be very
+careful with your inference, and axes after the first one may have too
+high $P$-values:
 <<>>=
 anova(mod, by="axis", perm=1000)
 @
