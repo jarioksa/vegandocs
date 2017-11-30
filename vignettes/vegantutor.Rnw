@@ -620,19 +620,21 @@ for species and sites. Some people prefer to use biplot arrows for
 species in \textsc{pca} and possibly also for sites. There is a
 special \texttt{biplot} function for this purpose:
 <<a>>=
-biplot(vare.pca, correlation = TRUE)
+biplot(vare.pca, correlation = TRUE, scaling="sites")
 @
 \marginpar{
 <<fig=true,echo=false,results=hide>>=
 <<a>>
 @
 }
-For this graph we specified \texttt{correlation = TRUE}. The results are
-scaled only when they are accessed, and we can flexibly change the
-scaling in \texttt{plot}, \code{biplot} and other commands. The
-\texttt{correlation} argument means that species scores are divided by the species
-standard deviations so that abundant and scarce species will be
-approximately as far away from the origin.
+For this graph we changed scaling to show the true relationship among
+sampling units (\texttt{scaling = "sites"}) and specified
+\texttt{correlation = TRUE}. The results are scaled only when they are
+accessed, and we can flexibly change the scaling in \texttt{plot},
+\code{biplot} and other commands. The \texttt{correlation} argument
+means that species scores are divided by the species standard deviations
+so that abundant andscarce species will be approximately as far away
+from the origin.
 
 The  default species ordination withot \texttt{correlation} argument
 looks somewhat unsatisfactory: only reindeer
@@ -831,14 +833,14 @@ plot(mod)
 There is an additional problem in plotting species ordination with
 these data:
 <<>>=
-names(BCI)[1:5]
+names(BCI)[1:4]
 @
 The data set uses full species names, and there is no way of fitting
 those in ordination graphs.  There is a utility function
 \code{make.cepnames} in \texttt{vegan} to abbreviate Latin names:
 <<>>=
 shnam <- make.cepnames(names(BCI))
-shnam[1:5]
+shnam[1:4]
 @
 
 The easiest way to selectively label species is to use interactive
@@ -880,7 +882,8 @@ abundant species:
 <<a>>=
 stems <- colSums(BCI)
 plot(mod, dis="sp", type="n")
-sel <- orditorp(mod, dis="sp", lab=shnam, priority=stems, pcol = "gray", pch="+")
+sel <- orditorp(mod, dis="sp", lab=shnam, priority=stems,
+                pcol = "gray", pch="+")
 @
 \marginpar{
 <<fig=true,echo=false,results=hide>>=
@@ -993,7 +996,7 @@ argument \texttt{p.max}.  As usual, more options can be found in the
 help pages.
 <<a>>=
 plot(vare.mds, display = "sites")
-plot(ef, p.max = 0.1)
+plot(ef, p.max = 0.05)
 @
 \marginpar{%
 <<fig=true,echo=false>>=
@@ -1028,21 +1031,23 @@ In the following example I introduce two new \textsf{R} features:
   lists the environmental variables.  In addition, we must define the
   name of the \texttt{data} containing the fitted variables.
 \item The variables in data frames are not visible to \textsf{R}
-  session unless the data frame is \code{attach}ed to the session.
-  We may not want to make all variables visible to the session,
-  because there may be synonymous names, and we may use wrong
-  variables with the same name in some analyses.  We can use function
-  \code{with} which makes the given data frame visible only to the
-  following command.
+  session unless the data frame is \code{attach}ed to the session.  We
+  may not want to make all variables visible to the session, because
+  there may be synonymous names, and we may use wrong variables with
+  the same name in some analyses.  We can use function \code{with}
+  which makes the given data frame visible only to the following
+  command. However, functions with \idxtext{formula} also have a
+  \texttt{data} argument for the name of the data frame with
+  variables.
 \end{itemize}
 Now we are ready for the example.  We make vector fitting for selected
 variables and add fitted surfaces in the same plot.
 <<a,results=hide>>=
-ef <- envfit(vare.mds ~ Al + Ca, varechem)
+ef <- envfit(vare.mds ~ Al + Ca, data = varechem)
 plot(vare.mds, display = "sites")
 plot(ef)
 tmp <- with(varechem, ordisurf(vare.mds, Al, add = TRUE))
-with(varechem, ordisurf(vare.mds, Ca, add = TRUE, col = "green4"))
+ordisurf(vare.mds ~ Ca, data=varechem, add = TRUE, col = "green4")
 @
 \marginpar{%
 <<fig=true,echo=false,results=hide>>=
@@ -1071,7 +1076,7 @@ class variables. Function \code{envfit} also works with factors:
 data(dune)
 data(dune.env)
 dune.ca <- cca(dune)
-ef <- envfit(dune.ca, dune.env, permutations = 999)
+ef <- envfit(dune.ca ~ Management + A1, dune.env)
 ef
 @
 <<a>>=
