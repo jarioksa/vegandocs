@@ -44,7 +44,7 @@
 \title{Multivariate Analysis of Ecological Communities in R: vegan tutorial}
 \author{Jari Oksanen}
 
-\ifpdf 
+\ifpdf
 \pdfinfo{
   /Title (\thetitle)
   /Author (\theauthor)
@@ -128,8 +128,7 @@ ordination methods, or my lectures, for firmer theoretical background.
 \index{non-metric multidimensional scaling}
 
 Non-metric multidimensional scaling can be performed using
-\code{isoMDS} function in the \texttt{MASS}
-package\index{package!MASS}.  This function needs dissimilarities as
+\code{monoMDS} function. This function needs dissimilarities as
 input.  Function \code{vegdist} in \texttt{vegan} contains
 dissimilarities which are found good in community ecology.  The
 default is \indexrev{Bray-Curtis}{dissimilarity}, nowadays often known
@@ -137,18 +136,15 @@ as \indexrev{Steinhaus}{dissimilarity}, or in Finland as S{\o}rensen
 index.  The basic steps are:
 <<>>=
 library(vegan)
-library(MASS)
 data(varespec)
 vare.dis <- vegdist(varespec)
-vare.mds0 <- isoMDS(vare.dis)
-@ 
-The default is to find two dimensions and use \idxtext{metric
-scaling} (\code{cmdscale}) as the starting solution.  The solution
-is iterative, as can be seen from the tracing information (this can be
-suppressed setting \texttt{trace = F}).
+vare.mds0 <- monoMDS(vare.dis)
+@
+The default is to find two dimensions and use random configuration
+as the starting solution.  The solution
+is iterative, and there is no guaranteed convergence.
 
-The results of \code{isoMDS} is a list (items
-\texttt{\Sexpr{paste(names(vare.mds0), collapse=", ")}}) for the
+The results of \code{monoMDS} is a  long list including the final
 configuration and the stress.  Stress\index{stress} $S$ is a statistic
 of goodness of fit, and it is a function of and non-linear monotone
 transformation of observed dissimilarities $\theta(d)$ and ordination
@@ -159,33 +155,31 @@ distances $\tilde d$.  \marginpar{$$S = \sqrt{\frac{\sum_{i \neq j}
 \textsc{Nmds}\index{non-metric multidimensional scaling} maps observed
 community dissimilarities nonlinearly onto ordination space and it can
 handle nonlinear species responses of any shape.  We can inspect the
-mapping using function \code{Shepard} in
-\texttt{MASS}\index{package!MASS} package, or a simple wrapper
-\code{stressplot} in \texttt{vegan}:
+mapping using function \code{stressplot}:
 <<a>>=
-stressplot(vare.mds0, vare.dis)
+stressplot(vare.mds0)
 @
 \marginpar{%
 <<echo=false,fig=true>>=
 <<a>>
-@ 
-} 
+@
+}
 Function \code{stressplot} draws a Shepard plot where ordination
 distances are plotted against community dissimilarities, and the fit
 is shown as a monotone step line.  In addition, \code{stressplot}
 shows two correlation like statistics of goodness of fit.  The
-correlation based on stress is $R^2 = 1 - S^2$.  The ``fit-based
+correlation based on \idxtext{stress} is $R^2 = 1 - S^2$.  The ``fit-based
 $R^2$'' is the correlation between the fitted values $\theta(d)$ and
 ordination distances $\tilde d$, or between the step line and the
 points.  This should be linear even when the fit is strongly curved
 and is often known as the ``linear fit''.  These two correlations are
-both based on the residuals in the Shepard plot, but they differ in
+both based on the residuals in the \idxtext{Shepard plot}, but they differ in
 their null models.  In linear fit, the null model is that all
 ordination distances are equal, and the fit is a flat horizontal line.
 This sounds sensible, but you need $N-1$ dimensions for the null model
 of $N$ points, and this null model is geometrically impossible in the
 ordination space.  The basic stress uses the null model where all
-observations are put in the same point, which is geometrically
+observations are put in the one singular point, which is geometrically
 possible.  Finally a word of warning: you sometimes see that people
 use correlation between community dissimilarities and ordination
 distances.  This is dangerous and misleading since
@@ -211,7 +205,7 @@ The iterative search is very difficult in
 \textsc{nmds}\index{non-metric multidimensional scaling}, because of
 nonlinear relationship between ordination and original
 dissimilarities.  The iteration easily gets trapped into
-\idxtext{local optimum} instead of finding the global optimum.
+\idxtext{local optimum} instead of finding the \idxtext{global optimum}.
 Therefore it is recommended to use several random starts, and select
 among similar solutions with smallest stresses.  This may be tedious,
 but \texttt{vegan} has function \code{metaMDS} which does this, and
@@ -231,7 +225,7 @@ plot(vare.mds, type = "t")
 We did not calculate dissimilarities in a separate step, but we gave
 the original data matrix as input.  The result is more complicated
 than previously, and has quite a few components in addition to those
-in \code{isoMDS}\index{non-metric multidimensional scaling} results:
+in \code{monoMDS}\index{non-metric multidimensional scaling} results:
 \texttt{\Sexpr{paste(names(vare.mds), collapse=", ")}}.
 The function wraps recommended procedures into
 one command.  So what happened here?
@@ -245,9 +239,9 @@ one command.  So what happened here?
   forgot to think about them in the initial analysis.
 \item Function used Bray--Curtis
   dissimilarities\index{dissimilarity!Bray-Curtis}.
-\item Function run \code{isoMDS} with several random starts, and
+\item Function run \code{monoMDS} with several random starts, and
   stopped either after a certain number of tries, or after finding two
-  similar configurations with minimum stress.  In any case, it
+  similar configurations with minimum \idxtext{stress}.  In any case, it
   returned the best solution.
 \item Function rotated the solution so that the largest variance of
   site scores will be on the first axis.
@@ -280,8 +274,8 @@ eigenvector methods of ordination.  It is the distance in
 axis orthogonal to all other species, and sites are points in this
 multidimensional hyperspace.  However, Euclidean
 distance\index{dissimilarity!Euclidean} is based on squared
-differences and strongly dominated by single large differences.  Most
-ecologically meaningful dissimilarities are of Manhattan
+differences in species abundances and it is dominated by single large differences.
+Most ecologically meaningful dissimilarities are of Manhattan
 type\index{dissimilarity!Manhattan}, and use differences instead of
 squared differences.  \marginpar{
 \begin{align*}
@@ -307,18 +301,16 @@ d_{jk} &= 1-  \frac{1}{2}\left(\frac{J}{A} + \frac{J}{B} \right) &
 \text{Kulczy{\' n}ski}
 \end{align*}
 }
-Package \texttt{vegan} has function \code{vegdist} with
+Package \texttt{vegan} has function \code{vegdist} with several
+dissimilarity measures that are good for community data, for instance,
 Bray--Curtis, Jaccard and Kulczy{\'n}ski indices.
 \index{dissimilarity!Bray-Curtis}
 \index{dissimilarity!Jaccard}
 \index{dissimilarity!Kulczy{\'n}ski}
-All these are of the Manhattan type and use only first order terms
+All three are of the Manhattan type and use only first order terms
 (sums and differences), and all are relativized by site total
 and reach their maximum value ($1$) when there are no shared species
-between two compared communities.  Function \code{vegdist} is a
-drop-in replacement for standard \textsf{R} function \code{dist},
-and either of these functions can be used in analyses of
-dissimilarities.
+between two compared communities.
 
 There are many confusing aspects in dissimilarity indices.  One is
 that same indices can be written with very different looking
@@ -342,7 +334,7 @@ These three basic indices are regarded as good in detecting gradients.
 In addition, \code{vegdist} function has indices that should satisfy
 other criteria.  Morisita\index{dissimilarity!Morisita},
 Horn--Morisita\index{dissimilarity!Horn-Morisita},
-Raup--Cric,\index{dissimilarity!Raup-Crick}
+Raup--Crick,\index{dissimilarity!Raup-Crick}
 Binomial\index{dissimilarity!binomial} and
 Mountford\index{dissimilarity!Mountford} indices should be able to
 compare sampling units of different sizes.
@@ -352,9 +344,9 @@ Gower\index{dissimilarity!Gower} indices should have better
 theoretical properties.
 
 Function \code{metaMDS} used \indexrev{Bray-Curtis}{dissimilarity} as
-default, which usually is a good choice.  Jaccard 
+default, which usually is a good choice.  Jaccard
 (Ru{\v z}i{\v c}ka)\index{dissimilarity!Jaccard}
-\index{dissimilarity!Ru{\v z}i{\v c}ka} index has identical rank order, 
+\index{dissimilarity!Ru{\v z}i{\v c}ka} index has identical rank order,
 but has better metric
 properties, and probably should be preferred. Function
 \code{rankindex} in \texttt{vegan} can be used to study which of the
@@ -365,7 +357,8 @@ unit variance:
 <<>>=
 data(varechem)
 rankindex(scale(varechem), varespec, c("euc","man","bray","jac","kul"))
-@ Bray--Curtis and Jaccard
+@
+Bray--Curtis and Jaccard
 \index{dissimilarity!Bray-Curtis}\index{dissimilarity!Jaccard} are
 non-linearly related, but they have identical rank orders, and their
 rank correlations are identical.  In general, the three recommended
@@ -409,10 +402,10 @@ look more similar than two sites sharing some species.  This can be
 cured by standardizing data.  Since Euclidean distances are based on
 squared differences, a natural transformation is to standardize sites
 to equal sum of squares, or to their vector norm using function
-\code{decostand}:\index{standardization!norm} 
+\code{decostand}:\index{standardization!norm}
 <<>>=
 dis <- vegdist(decostand(varespec, "norm"), "euclid")
-@ 
+@
 This gives chord distances\index{dissimilarity!chord} which reach a
 maximum limit of $\sqrt{2}$ when there are no shared species between
 two sites.  Another recommended alternative is Hellinger
@@ -420,7 +413,7 @@ distance\index{dissimilarity!Hellinger}\index{standardization!Hellinger}
 which is based on square roots of sites standardized to unit total:
 <<>>=
 dis <- vegdist(decostand(varespec, "hell"), "euclidean")
-@ 
+@
 Despite standardization, these still are Euclidean
 distances\index{dissimilarity!Euclidean} with all their good
 properties, but for transformed data.  Actually, it is often useful to
@@ -520,11 +513,11 @@ two ordinations.  Package \texttt{vegan} has function
 \code{procrustes} to perform Procrustes analysis.
 
 How much did we gain with using \code{metaMDS} instead of default
-\code{isoMDS}?
+\code{monoMDS}?
 <<>>=
 tmp <- wisconsin(sqrt(varespec))
 dis <- vegdist(tmp)
-vare.mds0 <- isoMDS(dis, trace = 0)
+vare.mds0 <- monoMDS(dis)
 pro <- procrustes(vare.mds, vare.mds0)
 pro
 plot(pro)
@@ -534,8 +527,7 @@ plot(pro)
 plot(pro)
 @
 }
-In this case the differences were fairly small, and mainly concerned
-two points.  You can use \code{identify} function to identify those
+You can use \code{identify} function to identify those
 points in an interactive session, or you can ask a plot of residual
 differences only:
 <<>>=
@@ -544,21 +536,20 @@ plot(pro, kind = 2)
 \marginpar{%
 <<fig=true,echo=false>>=
 plot(pro, kind=2)
-@ 
+@
 } The descriptive statistic is ``Procrustes sum of squares'' or the
 sum of squared arrows in the Procrustes plot.  \idxtext{Procrustes
 rotation} is nonsymmetric, and the statistic would change with
 reversing the order of ordinations in the call.  With argument
 \texttt{symmetric = TRUE}, both solutions are first scaled to unit
-variance, and a more scale-independent and symmetric statistic is
-found (often known as Procrustes $m^2$).
+variance, and a more scale-independent (but still non-symmetric)
+statistic is found (often known as Procrustes $m^2$).
 
 \subsection{Eigenvector methods}
 
-
 Non-metric multidimensional scaling\index{non-metric multidimensional
 scaling} was a hard task, because any kind of dissimilarity measure
-could be used and dissimilarities were nonlinearly mapped into
+could be used and dissimilarities were nonlinearly mapped onto
 ordination.  \marginpar{
 \begin{tabular}{lcc}
 \toprule
@@ -570,10 +561,10 @@ method & metric & mapping \\
 \textsc{ca} & Chi-square & weighted linear\\
 \bottomrule
 \end{tabular}
-} If we accept only certain types of dissimilarities and make a linear
+} If we accept only certain types of dissimilarities and perform linear
 mapping, the ordination becomes a simple task of rotation and
-projection.  In that case we can use eigenvector methods.  Principal
-components analysis\index{principal components analysis}
+projection of species space.  In that case we can use eigenvector methods.
+Principal components analysis\index{principal components analysis}
 (\textsc{pca}) and \idxtext{correspondence analysis} (\textsc{ca})
 are the most important eigenvector methods in community ordination.
 In addition, \idxtext{principal coordinates analysis}
@@ -592,7 +583,7 @@ analysis\index{correspondence analysis} is not as ubiquitous, but
 there are several alternative implementations for that also.  In this
 tutorial I show how to run these analyses with \texttt{vegan}
 functions \code{rda} and \code{cca} which actually were designed
-for constrained analysis.
+for constrained analysis (chapter \ref{sec:constord}, p.~\pageref{sec:constord}).
 
 Principal components analysis\index{principal components analysis} can
 be run as:
@@ -620,9 +611,8 @@ dimension \texttt{2} or columns (species), and then \texttt{sum} takes
 the sum of these values.  Inertia is the sum of all species
 variances.  The eigenvalues sum up to total inertia.  In other words,
 they each ``explain'' a certain proportion of total variance.  The
-first axis ``explains'' \Sexpr{round(vare.pca$CA$eig[1], 1)}/
-\Sexpr{round(vare.pca$tot.chi)} $=$
-\Sexpr{round(100*vare.pca$CA$eig[1]/vare.pca$tot.chi, 1)}~\% of total
+first axis ``explains'' \Sexpr{round(vare.pca$CA$eig[1], 1)}/\Sexpr{round(vare.pca$tot.chi)} $=$
+\Sexpr{round(100*vare.pca$CA$eig[1]/vare.pca$tot.chi, 1)}\,\% of total
 variance.
 
 The standard ordination \texttt{plot} command uses points or labels
@@ -630,32 +620,36 @@ for species and sites. Some people prefer to use biplot arrows for
 species in \textsc{pca} and possibly also for sites. There is a
 special \texttt{biplot} function for this purpose:
 <<a>>=
-biplot(vare.pca, scaling = -1)
+biplot(vare.pca, correlation = TRUE, scaling="sites")
 @
 \marginpar{
 <<fig=true,echo=false,results=hide>>=
 <<a>>
 @
 }
-For this graph we specified \texttt{scaling = -1}. The results are
-scaled only when they are accessed, and we can flexibly change the
-scaling in \texttt{plot}, \code{biplot} and other commands. The
-negative values mean that species scores are divided by the species
-standard deviations so that abundant and scarce species will be
-approximately as far away from the origin.
+For this graph we changed scaling to show the true relationship among
+sampling units (\texttt{scaling = "sites"}) and specified
+\texttt{correlation = TRUE}. The results are scaled only when they are
+accessed, and we can flexibly change the scaling in \texttt{plot},
+\code{biplot} and other commands. The \texttt{correlation} argument
+means that species scores are divided by the species standard deviations
+so that abundant andscarce species will be approximately as far away
+from the origin.
 
-The species ordination looks somewhat unsatisfactory: only reindeer
+The  default species ordination withot \texttt{correlation} argument
+looks somewhat unsatisfactory: only reindeer
 lichens (\emph{Cladina}) and \emph{Pleurozium schreberi} are visible,
 and all other species are crowded at the origin.  This happens because
 \idxtext{inertia} was variance, and only abundant species with high
 variances are worth explaining (but we could hide this in
-\texttt{plot} by setting negative scaling).  Standardizing all species
+\texttt{plot} by setting \texttt{correlation = TRUE}).
+Standardizing all species
 to unit variance, or using correlation coefficients instead of
 covariances will give a more balanced ordination:
 <<>>=
 vare.pca <- rda(varespec, scale = TRUE)
 vare.pca
-plot(vare.pca, scaling = 3)
+plot(vare.pca, scaling = "symmetric")
 @
 Now \idxtext{inertia} is correlation, and the correlation of a variable with
 itself is one. Thus the total inertia is equal to the number of
@@ -682,7 +676,7 @@ have to explain all species equally.  We should not look blindly at
 percentages, but the result we get.
 
 Correspondence analysis\index{correspondence analysis} is very similar
-to \textsc{pca}: 
+to \textsc{pca}:
 <<>>=
 vare.ca <- cca(varespec)
 vare.ca
@@ -691,7 +685,7 @@ plot(vare.ca)
 \marginpar{%
 <<fig=true,echo=false>>=
 plot(vare.ca)
-@ 
+@
 } Now the inertia is called \Sexpr{vare.ca$inertia}.  Correspondence
 analysis is based on Chi-squared
 distance,\index{dissimilarity!Chi-square} and the \idxtext{inertia} is the
@@ -713,11 +707,11 @@ plot(vare.ca, scaling = 1)
 \marginpar{%
 <<fig=true,echo=false>>=
 <<a>>
-@ 
+@
 } We already saw an example of \texttt{scaling = 3} or symmetric
 scaling in \textsc{pca}.  The other two integers mean that either
 species are weighted averages of sites (\texttt{2}) or sites are
-weighted averages of species (\texttt{1}).  When we take 
+weighted averages of species (\texttt{1}).  When we take
 \idxtext{weighted averages}, the range of averages shrinks from the
 original values.  The shrinkage factor is equal to the eigenvalue of
 \textsc{ca}, which has a theoretical maximum of 1.
@@ -753,20 +747,19 @@ plot(vare.dca, display="sites")
 Function \code{decorana} finds only four axes.  Eigenvalues are
 defined as shrinkage values in weighted averages, similarly as in
 \code{cca} above.  The ``Decorana values'' are the numbers that the
-original programme returns as ``eigenvalues'' --- I have no idea of
-their possible meaning, and they should not be used.  Most often
-people comment on axis lengths, which sometimes are called ``gradient
-lengths''.  The etymology is obscure: these are not gradients, but
+original programme returns as ``eigenvalues'', but they should not be used.
+Most often people comment on axis lengths, which sometimes are called
+``gradient lengths''.  The etymology is obscure: these are not gradients, but
 ordination axes.  It is often said that if the axis length is shorter
 than two units, the data are linear, and \textsc{pca}\index{principal
-components analysis} should be used.  This is only folklore and not
+components analysis} should be used.  This is folklore and not
 based on research which shows that \textsc{ca}\index{correspondence
 analysis} is at least as good as \textsc{pca} with short gradients,
-and usually better.
+and always better with longer gradients.
 \marginpar{%
 <<fig=true,echo=false>>=
 plot(vare.dca, display="sites")
-@ 
+@
 }
 
 The current data set is homogeneous, and the effects of
@@ -781,9 +774,9 @@ species: see help pages for the needed arguments.  Actually,
 \code{cca} as well.
 
 There is a school of thought that regards \textsc{dca}\index{detrended
-correspondence analysis} as the method of choice in unconstrained
-ordination.  However, it seems to be a fragile and vague back of
-tricks that is better avoided.
+  correspondence analysis} as the method of choice in unconstrained
+ordination.  However, it seems to be a fragile and vague bag of tricks
+that is better avoided.
 
 \subsection{Ordination graphics}
 \label{sec:orditorp}
@@ -840,14 +833,14 @@ plot(mod)
 There is an additional problem in plotting species ordination with
 these data:
 <<>>=
-names(BCI)[1:5]
-@ 
+names(BCI)[1:4]
+@
 The data set uses full species names, and there is no way of fitting
 those in ordination graphs.  There is a utility function
 \code{make.cepnames} in \texttt{vegan} to abbreviate Latin names:
 <<>>=
 shnam <- make.cepnames(names(BCI))
-shnam[1:5]
+shnam[1:4]
 @
 
 The easiest way to selectively label species is to use interactive
@@ -889,7 +882,8 @@ abundant species:
 <<a>>=
 stems <- colSums(BCI)
 plot(mod, dis="sp", type="n")
-sel <- orditorp(mod, dis="sp", lab=shnam, priority=stems, pcol = "gray", pch="+")
+sel <- orditorp(mod, dis="sp", lab=shnam, priority=stems,
+                pcol = "gray", pch="+")
 @
 \marginpar{
 <<fig=true,echo=false,results=hide>>=
@@ -1002,7 +996,7 @@ argument \texttt{p.max}.  As usual, more options can be found in the
 help pages.
 <<a>>=
 plot(vare.mds, display = "sites")
-plot(ef, p.max = 0.1)
+plot(ef, p.max = 0.05)
 @
 \marginpar{%
 <<fig=true,echo=false>>=
@@ -1037,21 +1031,23 @@ In the following example I introduce two new \textsf{R} features:
   lists the environmental variables.  In addition, we must define the
   name of the \texttt{data} containing the fitted variables.
 \item The variables in data frames are not visible to \textsf{R}
-  session unless the data frame is \code{attach}ed to the session.
-  We may not want to make all variables visible to the session,
-  because there may be synonymous names, and we may use wrong
-  variables with the same name in some analyses.  We can use function
-  \code{with} which makes the given data frame visible only to the
-  following command.
+  session unless the data frame is \code{attach}ed to the session.  We
+  may not want to make all variables visible to the session, because
+  there may be synonymous names, and we may use wrong variables with
+  the same name in some analyses.  We can use function \code{with}
+  which makes the given data frame visible only to the following
+  command. However, functions with \idxtext{formula} also have a
+  \texttt{data} argument for the name of the data frame with
+  variables.
 \end{itemize}
 Now we are ready for the example.  We make vector fitting for selected
 variables and add fitted surfaces in the same plot.
 <<a,results=hide>>=
-ef <- envfit(vare.mds ~ Al + Ca, varechem)
+ef <- envfit(vare.mds ~ Al + Ca, data = varechem)
 plot(vare.mds, display = "sites")
 plot(ef)
 tmp <- with(varechem, ordisurf(vare.mds, Al, add = TRUE))
-with(varechem, ordisurf(vare.mds, Ca, add = TRUE, col = "green4"))
+ordisurf(vare.mds ~ Ca, data=varechem, add = TRUE, col = "green4")
 @
 \marginpar{%
 <<fig=true,echo=false,results=hide>>=
@@ -1080,7 +1076,7 @@ class variables. Function \code{envfit} also works with factors:
 data(dune)
 data(dune.env)
 dune.ca <- cca(dune)
-ef <- envfit(dune.ca, dune.env, permutations = 999)
+ef <- envfit(dune.ca ~ Management + A1, dune.env)
 ef
 @
 <<a>>=
@@ -1174,6 +1170,7 @@ equal weights.
 % but it is difficult to imagine a situation where this makes sense.
 
 \section{Constrained ordination}
+\label{sec:constord}
 \index{constrained ordination}
 
 In unconstrained ordination we first find the major compositional
@@ -1197,13 +1194,13 @@ The \texttt{vegan} package has three \idxtext{constrained ordination}
 methods which all are constrained versions of basic ordination
 methods:
 \begin{itemize}
-\item Distance-based redundancy analysis \idxtext{metric scaling}
-  (\code{cmdscale}, \code{wcmdscale}).  It can handle any
-  dissimilarity measures and performs a linear mapping.  The
-  \texttt{vegan} package has two alternative implementations:
-  \code{dbrda} analyses directly dissimilarities and can give negative
-  eigenvalues, and \code{capscale} only analyses the real components
-  of the dissimilarities.
+\item Distance-based redundancy analysis (db\textsc{rda}) is related
+  to metric scaling and can handle any dissimilarity measures and
+  performs a linear mapping.  The \texttt{vegan} package has two
+  alternative implementations: \code{dbrda} analyses directly
+  dissimilarities and can give negative eigenvalues, and
+  \code{capscale} only analyses the real components of the
+  dissimilarities.
 \item Redundancy analysis\index{redundancy analysis} (\textsc{rda}) in
   function \code{rda} is related to principal components analysis.  It
   is based on Euclidean distances\index{dissimilarity!Euclidean} and
@@ -1223,12 +1220,13 @@ examples mainly use \code{cca}, but other methods can be used
 similarly.  Actually, the results are similarly structured, and they
 inherit properties from each other.  For historical reasons,
 \code{cca} is the basic method, and \code{rda} inherits properties
-from it.  Function \code{capscale} inherits directly from
-\code{rda}, and through this from \code{cca}.  Many functions,
-are common with all these methods, and there are
-specific functions only if the method deviates from its ancestor.  In
-\texttt{vegan} version \Sexpr{packageDescription("vegan")$Version}
-the following class functions are defined for these methods:
+from it.  Function \code{capscale} inherits directly from \code{rda},
+and through this from \code{cca}, and \code{dbrda} inherits from
+\code{cca}.  Many functions, are common with all these methods, and
+there are specific functions only if the method deviates from its
+ancestor.  In \texttt{vegan} version
+\Sexpr{packageDescription("vegan")$Version} the following class
+functions are defined for these methods:
 <<echo=false>>=
 tmp <- methods(class = "capscale")
 tmp <- if (length(tmp)==0) "none" else paste(gsub(".capscale", "", tmp), collapse = ", ")
@@ -1262,25 +1260,25 @@ vare.cca
 @
 The output is similar as in unconstrained ordination.
 Now the total \idxtext{inertia} is decomposed into constrained and
-unconstrained 
+unconstrained
 components.  There were three constraints, and the rank of constrained
-component is three.  The rank of unconstrained component is 20,
+component is three.
+The rank of unconstrained component is 20,
 when it used to be 23 in the previous analysis.  The rank is the same as
 the number of axes: you have 3 constrained axes and 20 unconstrained
 axes.  In some cases, the ranks may be lower than the number of
 constraints: some of the constraints are dependent on each other,
-and they are aliased in the analysis, and an informative message is
-printed with the result.
+and they are aliased\index{alias} in the analysis, and an informative
+message is printed with the result.
 
 It is very common to calculate the proportion of constrained inertia
-from the total \idxtext{inertia}.  However, total inertia does not
-have a clear meaning in \textsc{cca}\index{constrained correspondence
-analysis}, and the meaning of this proportion is just as obscure.
-In \textsc{rda}\index{redundancy analysis} this would be the
-proportion of variance (or correlation).  This may have a clearer
-meaning, but even in this case most of the total \idxtext{inertia} may
-be random noise.  It may be better to concentrate on results instead
-of these proportions.
+from the total \idxtext{inertia}.  In \textsc{rda}\index{redundancy
+  analysis} this would be the proportion of variance explained by the
+constraints.  This is a conventional indicator of goodness of fit, but
+most of the total \idxtext{inertia} may be random noise, and we
+explain a low proportion of total inertia although we find a strong
+signal and informative results.  It may be better to concentrate on
+results instead of these proportions.
 
 Basic plotting works just like earlier:
 \marginpar{
@@ -1290,16 +1288,16 @@ plot(vare.cca)
 }
 <<>>=
 plot(vare.cca)
-@ Now the ordination diagram also has arrows for constraints.  These
+@
+Now the ordination diagram adds arrows for constraints.  These
 have similar interpretation as fitted vectors: the arrow points to the
 direction of the gradient, and its length indicates the strength of
 the variable in this dimensionality of solution.  The vectors will be
 of unit length in full rank solution, but they are projected to the
-plane used in the plot.  
+plane used in the plot.
 
 The \textbf{vegan3d} provides a primitive 3D plotting
-function \code{ordiplot3d} (which needs user interaction for final
-graphs) that shows all arrows in full length:
+function \code{ordiplot3d} that shows all arrows in full length:
 <<>>=
 library(vegan3d)
 ordiplot3d(vare.cca, type = "h")
@@ -1310,7 +1308,7 @@ ordiplot3d(vare.cca, type="h")
 @
 }
 With function \code{ordirgl} you can also inspect 3D dynamic plots
-that can be spinned or zoomed into with your mouse.
+that can be spinned or zoomed interactively with your mouse.
 
 The formula interface works with factor variables as well:
 <<>>=
@@ -1329,10 +1327,7 @@ Internally \textsf{R} expressed these four levels as three \idxtext{contrasts}
 (sometimes called ``dummy variables'').  The applied contrasts look
 like this:
 <<echo=false>>=
-tmp <- model.matrix(~ Management, data=dune.env)
-rownames(tmp) <- as.character(dune.env$Management)
-tmp <- tmp[,-1]
-unique(tmp)
+with(dune.env, contrasts(Management))
 @
 We do not need but three variables to express four levels: if there is number
 one in a column, the observation belongs to that level, and if there is
@@ -1345,10 +1340,7 @@ In addition to these ordinary factors, \textsf{R} also knows
 \texttt{dune.env} is defined as an ordered four-level factor.  In this
 case the \idxtext{contrasts} look different:
 <<echo=false>>=
-tmp <- model.matrix(~ Moisture, data=dune.env)
-rownames(tmp) <- as.character(dune.env$Moisture)
-tmp <- unique(tmp[,-1])
-tmp[order(tmp[,1]), ]
+with(dune.env, contrasts(Moisture))
 @
 
 \textsf{R} uses polynomial contrasts: the linear term \texttt{L} is
@@ -1384,7 +1376,7 @@ with interactions or polynomials may be difficult to interpret.
 \index{constrained ordination}
 
 The significance of all terms together can be assessed using
-\idxtext{permutation tests}: the dat are permuted randomly and the model
+\idxtext{permutation tests}: the data are permuted randomly and the model
 is refitted.  When constrained inertia in permutations is nearly
 always lower than observed constrained \idxtext{inertia}, we say that
 constraints are significant.
@@ -1410,25 +1402,15 @@ F =
 $$
 }
 You should not pay any attention to its numeric values or to the
-numbers of degrees of freedom, since this ``pseudo-$F$'' has nothing
+numbers of degrees of freedom, since this ``pseudo-$F$'' has little
 to do with the real $F$, and the only way to assess its
 ``significance'' is permutation.  In simple models like the one
 studied here we could directly use inertia in testing, but the
-``pseudo-$F$'' is needed in more complicated model including
-``partialled'' terms.
+``pseudo-$F$'' is needed in more complicated models.
 
-The number of permutations was not specified in the mock
-\code{anova} function.  The function tries to be lazy: it continues
-permutations only as long as it is uncertain whether the final
-$P$-value will be below or above the critical value (usually $P =
-0.05$). If the observed inertia is never reached in permutations, the
-function may stop after 200 permutations, and if it is very often
-exceeded, it may stop after 100 permutations.  When we are close to
-the critical level, the permutations may continue to thousands.  In
-this way the calculations are fast when this is possible, but they are
-continued longer in uncertain cases.  If you want to have a fixed
-number of iterations, you must specify that in \code{anova} call
-or directly use the underlying function \code{permutest.cca}
+The permutations are based on \texttt{permute} package which allows also
+powerful restricted permutation models. Please consult the vignette of
+the \texttt{permute} package for deeper insight.
 
 In addition to the overall test for all constraints together, we can
 also analyse single terms or axes by setting argument \texttt{by}. The
@@ -1436,27 +1418,28 @@ following command analyses all terms separately in a sequential
 (``Type I'') test:
 <<>>=
 mod <- cca(varespec ~ Al + P + K, varechem)
-anova(mod, by = "term", step=200)
+anova(mod, by = "term")
 @
-All terms are compared against the same residuals, and there is no
-heuristic for the number permutations.  The test is sequential, and
+All terms are compared against the same residuals.
+The test is sequential, and
 the order of terms will influence the results, unless the terms are
-uncorrelated.  In this case the same number of permutations will be
-used for all terms. The sum of test statistics (\texttt{ChiSquare}) for
+uncorrelated. The sum of test statistics (\texttt{ChiSquare}) for
 terms is the same as the \texttt{Model} test statistic in the overall
 test.
 
-``Type III'' tests analyse the marginal effects when each term is
+``Type III'' tests analyse the marginal effects when each term in turn is
 eliminated from the model containing all other terms:
 <<>>=
 anova(mod, by = "margin", perm=500)
 @
 The marginal effects are independent of the order of the terms, but
-correlated terms will get higher (``worse'') $P$-values.  Now the the
+correlated terms will get higher (``worse'') $P$-values.  The
 sum of test statistics is not equal to the \texttt{Model} test
 statistic in the overall test, unless the terms are uncorrelated.
 
-We can also ask for a test of individual axes:
+We can also ask for a test of individual axes, but you should be very
+careful with your inference, and axes after the first one may have too
+high $P$-values:
 <<>>=
 anova(mod, by="axis", perm=1000)
 @
@@ -1470,10 +1453,10 @@ becomes more similar to the unconstrained one.  When the rank of
 unconstrained component reduces towards zero, there are
 absolutely no constraints.  However, the relaxation of constraints often
 happens much earlier in first ordination axes.  If we do not have
-strict constraints, it may be
+strict constraints, it is
 better to use unconstrained ordination with vector fitting (or surface
 fitting), which allows detection of
-compositional variation for which we have not observed environmental
+compositional variation for which we have no observed environmental
 variables.  In constrained ordination it is best to reduce the number
 of constraints to just a few, say three to five.
 
@@ -1496,7 +1479,7 @@ plot(procrustes(cca(varespec), mod1))
 
 For heuristic purposes we should reduce the number of constraints to
 find important environmental variables.  In principle,
-constrained ordination only should be used with designed \textsl{a priori}
+constrained ordination is best used with designed \textsl{a priori}
 constraints.  All kind of automatic tools of model selection are
 dangerous: There may be several alternative models which are nearly
 equally good;  Small changes in data can cause large changes in
@@ -1507,46 +1490,46 @@ Significance tests are biased, because the model is selected for the
 best test performance.
 
 After all these warnings, I show how \texttt{vegan} can be used to
-automatically select constraints into model using standard \textsf{R}
-function \code{step}.  The \code{step} uses Akaike's information
-criterion (\textsc{aic}\index{AIC}) as the selection criterion.
-\textsc{Aic} is a penalized goodness-of-fit measure: the
-goodness-of-fit is basically derived from the residual (unconstrained)
-inertia penalized by the rank of the constraints.  In principle
-\textsc{aic} is based on log-Likelihood that ordination does not have.
-However, a \code{deviance} function changes the unconstrained inertia
-to Chi-squared in \code{cca} or sum of squares in \code{rda} and
-\code{capscale}.  This deviance is treated like sum of squares in
-Gaussian models.  If we have only continuous (or 1 \emph{d.f.})
-terms, this is the same as selecting variables by their contributions
-to constrained eigenvalues (\idxtext{inertia}).  With factors the
-situation is more tricky, because factors must be penalized by their
-degrees of freedom, and there is no way of knowing the magnitude of
-penalty.  The \code{step} function may still be useful in helping to
-gain insight into the data, but it should not be trusted blindly (or
-at all), but only regarded as an aid in model building.
+automatically select constraints into model using function
+\code{ordistep}.  Function works similarly as standard \textsf{R}
+function \code{text}: it can start from an empty or small model and
+add constraints (\texttt{"forward"}), or it can start from a complete
+or large model and remove constraints (\texttt{"backward"}), or it can
+alternate between adding and removing constraints
+(\texttt{"stepwise"}). The decisions are based on permutation
+tests. In \texttt{"stepwise"} model building we usually have a lower
+significance level to enter a constraint into model than to remove a
+selected variable to avoid eternal cycles. The \code{ordistep}
+function also calculates a goodness of fit statistic known as
+\idxtext{AIC}. This is calculate similarly as in linear models, but it
+in ordination it is not based on solid theory, and should be regarded
+as purely descriptive indicator of the goodness of fit.
 
-After this longish introduction the example: using \code{step} is much
-simpler than explaining how it works.  We need to give the model we
-start with, and the scope of possible models inspected.  For this we
-need another formula trick: \idxtext{formula} with only \texttt{1} as
-the constraint defines an unconstrained model.  We must define it like
-this so that we can add new terms to initially unconstrained
-model. The \textsc{aic}\index{AIC} used in model building is not based
-on a firm theory, and therefore we also ask for permutation tests at
-each step. In ideal case, all included terms should be significant and
-all excluded terms insignificant in the final model.  The
-\texttt{scope} must be given as a \texttt{list} a formula, but we can
-extract this from fitted models using function \texttt{formula}. 
-The following example begins with an
-unconstrained model \texttt{mod0} and steps towards the previously
-fitted maximum model \texttt{mod1}:
+The \code{ordistep} function may be useful in helping to gain insight
+into the data, but it should not be trusted blindly (or at all), but
+only regarded as an aid in model building. In addition to
+\code{ordistep}, \texttt{vegan} also offers function \code{ordiR2step}
+that also uses $R^2$ as a criterion, and even standard \textsf{R}
+function \code{step} will work, but it does not base its model
+selection on signficance tests, and can give different results than
+\code{ordistep}.
+
+Using \code{ordistep} is much simpler than explaining how it works.
+We need to give the model we start with, and the scope of possible
+models inspected.  For this we need another formula trick:
+\idxtext{formula} with only \texttt{1} as the constraint defines an
+unconstrained model.  We must define it like this so that we can add
+new terms to initially unconstrained model. The \texttt{scope} must be
+given as a \texttt{list} a formula, but we can extract this from
+fitted models using function \texttt{formula}.  The following
+\code{ordistep} begins with an unconstrained model \texttt{mod0} and
+steps towards the previously fitted maximum model \texttt{mod1}:
 <<echo=false>>=
 op <- options(digits=7)
 @
 <<>>=
 mod0 <- cca(varespec ~ 1, varechem)
-mod <- step(mod0, scope = formula(mod1), test = "perm")
+mod <- ordistep(mod0, scope = formula(mod1))
 @
 <<echo=false>>=
 options(op)
@@ -1554,28 +1537,27 @@ options(op)
 <<>>=
 mod
 @
+
 We ended up with the same familiar model we have been using all the
 time (and now you know the reason why this model was used in the first
-place).  The \textsc{aic}\index{AIC} was based on deviance, and penalty for
-each added parameter was 2 per degree of freedom.  At every step the
-\textsc{aic} was evaluated for all possible additions (\texttt{+}) and
-removals (\texttt{-}), and the variables are listed in the order of
-\textsc{aic}.  The stepping stops when \texttt{<none>} or the current
-model is at the top.
+place).  \code{ordistep} alternated between additions (\texttt{+}) and
+removals (\texttt{-}) of variables, and the variables are listed in
+the order of \idxtext{AIC}.  The stepping stops when no variables can
+be entered in the model nor removed from the model.
 
-Model building with \code{step} is fragile, and the strategy of model
-building can change the final model.  If we start with the
-largest model (\texttt{mod1}), the final model will be different:
+Model building with automatic procedures (\code{ordistep},
+\code{ordiR2step}, \code{step}) is fragile, and the strategy of model
+building can change the final model.  If we start with the largest
+model (\texttt{mod1}), the final model will be different:
 <<>>=
-modb <- step(mod1, scope = list(lower = formula(mod0), upper = formula(mod1)), trace = 0)
+modb <- ordistep(mod1, trace = FALSE, Pout = 0.05)
 modb
 @
 
-The \textsc{aic}\index{AIC} of this model is
-\Sexpr{round(extractAIC(modb)[2],2)} which is higher (worse) than
-reached in forward selection (\Sexpr{round(extractAIC(mod)[2], 2)}).
-We supressed tracing to save some pages of output, but \code{step}
-adds its history in the result:
+We set the removal $P$-value limit to \texttt{Pout = 0.05} in
+\code{ordistep} so that all retained constraints are significant in
+the conventional sense.  We also suppressed tracing to save some pages
+of output, but \code{ordistep} adds its history in the result:
 <<>>=
 modb$anova
 @
@@ -1606,7 +1588,8 @@ There are two kind of site scores in \idxtext{constrained ordination}s:
 \item Linear combination scores\index{LC scores} \textsc{lc} which are linear
   combinations of constraining variables.
 \item Weighted averages scores \textsc{wa}\index{WA scores} which are
-  \idxtext{weighted averages} of species scores.
+  \idxtext{weighted averages} (CCA) or weighted sums of species
+  scores.
 \end{enumerate}
 These two scores are as similar as possible, and their (weighted)
 correlation is called the \idxtext{species--environment correlation}:
@@ -1630,16 +1613,16 @@ show how you can circumvent my decisions.
 The practical reason to prefer \textsc{wa} scores\index{WA scores} is
 that they are more robust against random error in environmental
 variables.  All ecological observations have random error, and
-therefore it is better to use scores that are resistant to this
-variation.  Another point is that I see \textsc{lc} scores\index{LC
-scores} as constraints: the scores are dependent only on
+therefore it is better to use scores that are resistant to randomness.
+Another point is that \textsc{lc} scores\index{LC
+scores} \emph{are} constraints: the scores are dependent only on
 environmental variables, and community composition does not influence
 them.  The \textsc{wa} scores are based on community composition, but
 so that they are as similar as possible to the constraints.  This
 duality is particularly clear when using a single factor variable as
 constraint: the \textsc{lc} scores are constant within each level of
 the factor and fall in the same point.  The \textsc{wa} scores show
-how well we can predict the factor level from community composition.
+how we can predict the factor level from community composition.
 
 The \texttt{vegan} package has a graphical function
 \code{ordispider} which (among other alternatives) will combine
@@ -1649,8 +1632,14 @@ single factor constraint:
 dune.cca <- cca(dune ~ Management, dune.env)
 plot(dune.cca, display = c("lc", "wa"), type = "p")
 ordispider(dune.cca, col="blue")
-@ 
-The interpretation is similar as in discriminant analysis: \textsc{lc} scores\index{LC scores} give the predicted class centroids, and \textsc{wa} scores\index{WA scores} give the predicted values.  For distinct classes, there is no overlap among groups.  In general, the length of \texttt{ordispider} segments is a visual image of \idxtext{species--environment correlation}.  \marginpar{%
+@
+
+The interpretation is similar as in discriminant analysis: \textsc{lc}
+scores\index{LC scores} give the predicted class centroids, and
+\textsc{wa} scores\index{WA scores} give the predicted values.  For
+distinct classes, there is no overlap among groups.  In general, the
+length of \texttt{ordispider} segments is a visual image of
+\idxtext{species--environment correlation}.  \marginpar{%
 <<fig=true,echo=false>>=
 plot(dune.cca, display = c("lc", "wa"), type="p")
 ordispider(dune.cca, col="blue")
@@ -1667,29 +1656,25 @@ to unit length in the constrained ordination of full rank. When these
 arrows are projected onto 2D ordination plot, they look shorter if
 they go off the plane.
 
-In \texttt{vegan} the biplot arrows are always scaled similarly
-irrespective of scaling of sites or species.  With default
-\texttt{scaling = 2}, the biplot arrows have optimal relation to
-sites, but with \texttt{scaling = 1} they rather are related to
-species.
-
 The standard interpretation of biplot arrows is that a site should be
-perpendicularly projected onto the arrow to predict the value of the
-variable.  The arrow starts from the (weighted) mean of the
-environmental variable, and the values increase towards the arrow
-head, and decrease to the opposite direction. Then we still should
-figure out the unit of change.  Function \code{calibrate.cca}
-performs this automatically in \texttt{vegan}.  Let us inspect the
-result of the \code{step} function with three constraints:
+projected onto the arrow to predict the value of the variable.  The
+arrow starts from the (weighted) mean of the environmental variable,
+and the values increase towards the arrow head, and decrease to the
+opposite direction. We still should figure out the unit of
+change.  Function \code{calibrate} performs this automatically in
+\texttt{vegan}.  Let us inspect the result of the \code{ordistep}
+function with three constraints:
 <<>>=
 pred <- calibrate(mod)
 head(pred)
 @
-Actually, this is not based on biplot arrows, but on regression
-coefficients used internally in constrained ordination.  Biplot arrows
-should only be seen as a visual approximation.  The fitting is done in
-full constrained rank as default and for all constraints
-simultaneously.  The example draws a residual plot of predictions:
+
+The calculation is not actually based on biplot arrows, but on
+regression coefficients used internally in constrained ordination.
+Biplot arrows should only be seen as a visual approximation.  The
+fitting is done in full constrained rank as default and for all
+constraints simultaneously.  The example draws a residual plot of
+predictions:
 <<a>>=
 with(varechem, plot(Al, pred[,"Al"] - Al, ylab="Prediction Error"))
 abline(h=0, col="grey")
@@ -1730,17 +1715,18 @@ sometimes they may work quite well.  In this case, \texttt{P} would
 display a linear response surface, although it was less important than
 \texttt{Al} in model building.
 
-\subsection{Conditioned or partial models}
+\subsection{Partial models with conditions}
 \label{sec:pcca}
 \index{partial ordination}
 
 The effect of some environmental variables can be removed from the
 ordination before constraining with other variables.  The analysis is
 said to be conditioned on variables, or in other words, it is partial
-after removing variation caused by some variables.  These conditioning
+after removing the effects of conditions.  These conditioning
 variables typically are ``random'' or background variables, and their
 effect is removed from the analysis based on ``fixed'' or interesting
-variables.
+variables. However, we do not have strictly random variables in
+ordination, but all variables are fitted in the same way.
 
 In \texttt{vegan}, the formula for constrained ordination can contain
 a \texttt{Condition} which specifies the variable or variables whose
@@ -1787,14 +1773,13 @@ with(dune.env, anova(dune.cca, strata = Moisture))
 Conditioned or partial models are sometimes used for decomposition of
 inertia into various components attributed to different sets of
 environmental variables.  In some cases this gives meaningful results,
-but the groups of environmental variables should be non-linearly
-independent for unbiased decomposition.  If the groups of
-environmental variables have polynomial dependencies, some of the
-components of inertia may even become negative (that should be
-impossible).  That kind of higher-order dependencies are almost
-certain to appear with high number of variables and high number of
-groups.  However, \code{varpart} performs decomposition of
-\code{rda} models among two to four components.
+but the groups of environmental variables should be independent for
+unbiased decomposition.  If the groups of environmental variables have
+polynomial dependencies, some of the components of inertia may even
+become negative.  Higher-order dependencies are almost certain to
+appear with high number of variables and high number of groups.
+However, \code{varpart} performs decomposition of \code{rda} or
+\code{dbrda} models among two to four components.
 
 %\subsection{Ordination diagnostics}
 
@@ -1802,32 +1787,35 @@ groups.  However, \code{varpart} performs decomposition of
 
 We already discussed environmental interpretation of ordination and
 environmentally constrained ordination.  These both reduce the
-variation into an ordination space, and mainly inspect the first
+variation into ordination space, and mainly inspect the first
 dimensions.  Sometimes we may wish to analyse vegetation--environment
 relationships without ordination, or in full space.  Typically these
 methods use the dissimilarity matrix in analysis. The recommended
-method in \texttt{vegan} is \code{adonis} which implements a
-multivariate analysis of variances using distance matrices. Function
-\code{adonis} can handle both continuous and factor predictors. Other
-methods in \texttt{vegan} include multiresponse permutation procedure
-(\code{mrpp}) and analysis of similarities (\code{anosim}). Both
-of these handle only class predictors, and they are less robust
-than \code{adonis}.
+method in \texttt{vegan} is \code{adonis2} which implements a
+multivariate analysis of variances using community dissimilarity
+matrices. The \code{adonis2} is similar to
+\idxtext{distance-based redundancey analysis} (\code{dbdra}):
+it is based on the same
+method, but skips actual ordination and only finds the goodness-of-fit
+statistics.  Function \code{adonis2} can handle both continuous and
+factor predictors. Other methods in \texttt{vegan} include
+multiresponse permutation procedure (\code{mrpp}) and analysis of
+similarities (\code{anosim}). Both of these handle only class
+predictors, and they are less robust than \code{adonis2}.
 
 \subsection{adonis: Multivariate ANOVA based on dissimilarities}
 
-Function \code{adonis} partitions dissimilarities for the sources of
+Function \code{adonis2} partitions dissimilarities for the sources of
 variation, and uses permutation tests to inspect the significances of
-those partitions. With Euclidean
-distances\index{dissimilarity!Euclidean} the results are similar as in
-\code{rda} and its \code{anova} permutation tests, but
-\code{adonis} can handle any dissimilarity objects.
+those partitions. The results are similar as in \code{dbrda} and its
+\code{anova} permutation tests, and with Euclidean
+distances\index{dissimilarity!Euclidean} both are equal to \code{rda}.
 
-The example uses \code{adonis} to study \idxtext{beta diversity}
+The example uses \code{adonis2} to study \idxtext{beta diversity}
 between Management classes in the dune meadow data. We define beta
 diversity as the slope of species-area curve, or the exponent $z$ of
 the Arrhenius model\index{dissimilarity!Arrhenius} where the number of
-species $S$ is dependent on the size $X$ of the study area.
+species $S$ is dependent on the area (size) $X$ of the study area.
 \marginpar{
 \begin{align*}
 S =& k X^z\\
@@ -1847,32 +1835,32 @@ differences. The Arrhenius $z$ can be directly found with function
 <<>>=
 betad <- betadiver(dune, "z")
 @
-Function \code{adonis} can use formula interface, and the dependent
+Function \code{adonis2} can use formula interface, and the dependent
 data can be either dissimilarities or data frame, and in the latter
-case \code{adonis} uses \code{vegdist} to find the dissimilarities.
+case \code{adonis2} uses \code{vegdist} to find the dissimilarities.
 <<>>=
-adonis(betad ~ Management, dune.env, perm=200)
-@ 
-The models can be more complicated, and sequential test of
-permutational ANOVA\index{permutation tests} is performed if there are
+adonis2(betad ~ Management, dune.env)
+@
+The models can be more complicated, and sequential or marginal tests of
+permutational ANOVA\index{permutation tests} can be performed if there are
 several parameters:
 <<>>=
-adonis(betad ~ A1*Management, dune.env, perm = 200)
+adonis2(betad ~ A1*Management, dune.env)
 @
 
 \subsection{Homogeneity of groups and beta diversity}
 
-Function \code{adonis} studied the differences in the group means,
+Function \code{adonis2} studied the differences in the group means,
 but function \code{betadisper} studies the differences in group
-homogeneities. Function \code{adonis} was analogous to multivariate
-analysis of variance, and \code{betadisper} is analogous to
-\idxtext{Levene's test} of the equality of variances.
+homogeneities, or variation within groups. Function \code{adonis2} was
+analogous to multivariate analysis of variance, and \code{betadisper}
+is analogous to \idxtext{Levene's test} of the equality of variances.
 
-The example continues the analysis of the previous section and inspects
-the \idxtext{beta diversity}. The function can only use one factor as an
-independent variable, and it does not know the formula interface, so
-that we need to \code{attach} the data frame or use \code{with} to
-make the factor visible to the function:
+The example continues the analysis of the previous section and
+inspects the \idxtext{beta diversity}. The function can only use one
+factor as an independent variable, and it does not know the formula
+interface, so that we need to use \code{with} to make the factor
+visible to the function:
 <<>>=
 mod <- with(dune.env,  betadisper(betad, Management))
 mod
@@ -1911,24 +1899,24 @@ TukeyHSD(mod)
 \index{Mantel test}
 
 Mantel test compares two sets of dissimilarities.  Basically, it is
-the correlation between dissimilarity entries.  As there are
+the correlation between dissimilarity matrices.  As there are
 $N(N-1)/2$ dissimilarities among $N$ objects, normal
 significance tests are not applicable.  Mantel developed asymptotic
-test statistics, but \texttt{vegan} function \texttt{mantel} uses
+test statistics, but \texttt{vegan} function \code{mantel} uses
 \idxtext{permutation tests}.
 
 In this example we study how well the lichen pastures
 (\texttt{varespec}) correspond to the environment.  We have already
 used vector fitting after ordination.  However, the ordination and
 environment may be non-linearly related, and we try now with function
-\code{mantel}.  We first perform a \textsc{pca}\index{principal
-components analysis} of environmental
+\code{mantel}.  We first perform a
+\textsc{pca}\index{principal components analysis} of environmental
 variables, and then compute dissimilarities for first principal
 components.  We use standard \textsf{R} function \code{prcomp}, but
 \code{princomp} or \code{rda} will work as well.  Function
-\texttt{scores} in \texttt{vegan} will work with all these methods.
+\code{scores} in \texttt{vegan} will work with all these methods.
 The following uses the same standardizations for community
-dissimilarities as previously used in \texttt{metaMDS}.
+dissimilarities as previously used in \code{metaMDS}.
 <<>>=
 pc <- prcomp(varechem, scale = TRUE)
 pc<- scores(pc, display = "sites", choices = 1:4)
@@ -1974,7 +1962,7 @@ plot(pro)
 pro
 @
 The significance is assessed by \idxtext{permutation tests}.  The statistic is
-now Procrustes correlation $r$ derived from the symmetric Procrustes
+Procrustes correlation $r$ derived from the symmetric Procrustes
 residual $m^2$.
 \marginpar{%
 <<fig=true,echo=false>>=
@@ -1999,7 +1987,7 @@ is known as analysis of congruence.
 
 \section{Classification}
 
-The \texttt{vegan} mainly is a package for ordination and diversity
+The \texttt{vegan} is mainly a package for ordination and diversity
 analysis, and there is only a scanty support to classification.  There
 are several other \textsf{R} packages with more extensive
 classification functions.  Among community ecological packages,
@@ -2014,7 +2002,7 @@ community ecology that are sufficient to many community ecologists.
 Hierarchic clustering can be perfomed using standard \textsf{R}
 function \code{hclust}.  In addition, there are several other
 clustering packages, some of which may be compatible with
-\code{hclust}.  Function \code{hclust} needs a dissimilarities
+\code{hclust}.  Function \code{hclust} needs dissimilarities
 as input.
 
 Function \code{hclust} provides several alternative \idxtext{clustering}
@@ -2033,7 +2021,7 @@ plot(clus)
 @
 }
 Some people prefer single linkage, because it is conceptually related
-to minimum spanning tree which nicely can be represented in
+to \idxtext{minimum spanning tree} which nicely can be represented in
 ordinations, and it is able to find discontinuities in the data.
 However, single linkage is prone to chain data so that single sites
 are joined to large clusters.
@@ -2132,8 +2120,15 @@ not used in \idxtext{clustering}.  The only continuous variable in the Dune data
 is the thickness of the A1 horizon:
 <<a>>=
 boxplot(A1 ~ grp, data=dune.env, notch = TRUE)
-@ 
-If we wish, we may use all normal statistical methods with factors, such as functions \code{lm} or \code{aov} for formal testing of ``significance'' of clusters.  Classification can be compared against external factor variables as well.  However, \texttt{vegan} does not provide any tools for this.  It may be best to see the \indexrev{labdsv}{package} and its tutorial for this purpose.  \marginpar{%
+@
+
+If we wish, we may use all normal statistical methods with factors,
+such as functions \code{lm} or \code{aov} for formal testing of
+``significance'' of clusters.  Classification can be compared against
+external factor variables as well.  However, \texttt{vegan} does not
+provide any tools for this.  It may be best to see the
+\indexrev{labdsv}{package} and its tutorial for this purpose.
+\marginpar{%
 <<fig=true,echo=false>>=
 <<a>>
 @
@@ -2216,9 +2211,9 @@ interpret.
 
 \subsection{Classified community tables}
 
-The aim of classification often is to make a classified community
+A common reason to classify data is to make a classified community
 table.  For this purpose, both sites and species should be arranged so
-that the table looks structured.  The original clustering may not be
+that the table is structured.  The original clustering may not be
 ideally structured, because the ordering of sites is not strictly
 defined in the cluster dendrogram.  You can take any branch and rotate
 it around its base, and the clustering is the same.  The tree drawing
@@ -2226,17 +2221,20 @@ algorithms use heuristic rules to make the tree look aesthetically
 pleasing, but this ordering may not be the best one for a
 structured community table.
 
-Base \textsf{R} has a general tree class called \code{dendrogram}
-which is intended as a common base for any tree-like presentations.
-This class has a function to reorder a tree according to some external
-variable.  The \code{hclust} result can be changed into
-\code{dendrogram} with function \code{as.dendrogram}, and this can be
-reorderd with function \code{reorder}.  The only continuous variable
-in the Dune data is the thickness of A1 horizon, and this could be
-used to arrange the tree.  However, for a nicely structured community
-table we use another trick: \textsc{ca}\index{correspondence analysis}
-is an ordination method that structures table optimally into a
-diagonal structure, and we can use its first axis to reorder the tree:
+The ordering of leaves is arbitrary in the cluster dendrogram: You can
+take any branch and rotate it about its base. This changes the order
+of leaves, but the tree is topologically identical. We can re-order
+tree so that the order of leaves is as similar as possible to an
+external variabe. \texttt{Vegan} has function \code{reorder} to change
+the order of leaves to mach an external variable, and base \textsf{R}
+has similar \code{reorder} function for an alternative
+\code{dendrogram} mode of trees. The only continuous
+variable in the Dune data is the thickness of A1 horizon, and this
+could be used to arrange the tree.  However, for a nicely structured
+community table we use another trick: \textsc{ca}\index{correspondence
+  analysis} is an ordination method that structures table optimally
+into a diagonal structure, and we can use its first axis to reorder
+the tree:
 <<>>=
 wa <- scores(ord, display = "sites", choices = 1)
 den <- as.dendrogram(clua)
@@ -2256,25 +2254,25 @@ par(op)
 @
 }
 
-Function \code{vegemite} in \texttt{vegan} produces compact
-vegetation tables.  It can take an argument \texttt{use} to arrange
-the sites (and species, if possible).  This argument can be a vector
-used to arrange sites, or it can be an ordination result, or it can be an
-\code{hclust} result or a \code{dendrogram} object.
-<<>>=
-vegemite(dune, use = oden, zero = "-")
+The classified community tables can be displayed graphically using
+\code{tabasco} function or printed in compact text form with
+\code{vegemite} in \texttt{vegan}.  These functions take an argument
+\texttt{use} to arrange the sites (and species, if possible), and
+\code{tabasco} can also display \code{dendrogram}.
+\marginpar{%
+<<fig=true,echo=false>>=
+tabasco(dune, oden)
 @
+}
+This argument can
+be a vector used to arrange sites, or it can be an ordination result,
+or it can be an \code{hclust} result or a \code{dendrogram} object.
+
 The \code{dendrogram} had no information on species, but it uses
 weigthed averages to arrange them similarly as sites.  This may not be
 optimal for a clustering results, but if the clusters are reorderd
 nicely, the results may be very satisfactory with a nicely structured
 community table.
-
-The \code{vegemite} output is very compact (hence the name), and it
-uses only one column for sites.  In this case this was automatic,
-since Dune meadow data uses class scales.  Percent cover scale can be
-transformed to traditional class scales, such as Braun-Blanquet, Domin
-or Hult--Sernander--Du~Rietz.
 
 \paragraph*{Session Info}
 
