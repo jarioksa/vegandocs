@@ -1987,7 +1987,7 @@ is known as analysis of congruence.
 
 \section{Classification}
 
-The \texttt{vegan} mainly is a package for ordination and diversity
+The \texttt{vegan} is mainly a package for ordination and diversity
 analysis, and there is only a scanty support to classification.  There
 are several other \textsf{R} packages with more extensive
 classification functions.  Among community ecological packages,
@@ -2002,7 +2002,7 @@ community ecology that are sufficient to many community ecologists.
 Hierarchic clustering can be perfomed using standard \textsf{R}
 function \code{hclust}.  In addition, there are several other
 clustering packages, some of which may be compatible with
-\code{hclust}.  Function \code{hclust} needs a dissimilarities
+\code{hclust}.  Function \code{hclust} needs dissimilarities
 as input.
 
 Function \code{hclust} provides several alternative \idxtext{clustering}
@@ -2021,7 +2021,7 @@ plot(clus)
 @
 }
 Some people prefer single linkage, because it is conceptually related
-to minimum spanning tree which nicely can be represented in
+to \idxtext{minimum spanning tree} which nicely can be represented in
 ordinations, and it is able to find discontinuities in the data.
 However, single linkage is prone to chain data so that single sites
 are joined to large clusters.
@@ -2121,7 +2121,14 @@ is the thickness of the A1 horizon:
 <<a>>=
 boxplot(A1 ~ grp, data=dune.env, notch = TRUE)
 @
-If we wish, we may use all normal statistical methods with factors, such as functions \code{lm} or \code{aov} for formal testing of ``significance'' of clusters.  Classification can be compared against external factor variables as well.  However, \texttt{vegan} does not provide any tools for this.  It may be best to see the \indexrev{labdsv}{package} and its tutorial for this purpose.  \marginpar{%
+
+If we wish, we may use all normal statistical methods with factors,
+such as functions \code{lm} or \code{aov} for formal testing of
+``significance'' of clusters.  Classification can be compared against
+external factor variables as well.  However, \texttt{vegan} does not
+provide any tools for this.  It may be best to see the
+\indexrev{labdsv}{package} and its tutorial for this purpose.
+\marginpar{%
 <<fig=true,echo=false>>=
 <<a>>
 @
@@ -2204,9 +2211,9 @@ interpret.
 
 \subsection{Classified community tables}
 
-The aim of classification often is to make a classified community
+A common reason to classify data is to make a classified community
 table.  For this purpose, both sites and species should be arranged so
-that the table looks structured.  The original clustering may not be
+that the table is structured.  The original clustering may not be
 ideally structured, because the ordering of sites is not strictly
 defined in the cluster dendrogram.  You can take any branch and rotate
 it around its base, and the clustering is the same.  The tree drawing
@@ -2214,17 +2221,20 @@ algorithms use heuristic rules to make the tree look aesthetically
 pleasing, but this ordering may not be the best one for a
 structured community table.
 
-Base \textsf{R} has a general tree class called \code{dendrogram}
-which is intended as a common base for any tree-like presentations.
-This class has a function to reorder a tree according to some external
-variable.  The \code{hclust} result can be changed into
-\code{dendrogram} with function \code{as.dendrogram}, and this can be
-reorderd with function \code{reorder}.  The only continuous variable
-in the Dune data is the thickness of A1 horizon, and this could be
-used to arrange the tree.  However, for a nicely structured community
-table we use another trick: \textsc{ca}\index{correspondence analysis}
-is an ordination method that structures table optimally into a
-diagonal structure, and we can use its first axis to reorder the tree:
+The ordering of leaves is arbitrary in the cluster dendrogram: You can
+take any branch and rotate it about its base. This changes the order
+of leaves, but the tree is topologically identical. We can re-order
+tree so that the order of leaves is as similar as possible to an
+external variabe. \texttt{Vegan} has function \code{reorder} to change
+the order of leaves to mach an external variable, and base \textsf{R}
+has similar \code{reorder} function for an alternative
+\code{dendrogram} mode of trees. The only continuous
+variable in the Dune data is the thickness of A1 horizon, and this
+could be used to arrange the tree.  However, for a nicely structured
+community table we use another trick: \textsc{ca}\index{correspondence
+  analysis} is an ordination method that structures table optimally
+into a diagonal structure, and we can use its first axis to reorder
+the tree:
 <<>>=
 wa <- scores(ord, display = "sites", choices = 1)
 den <- as.dendrogram(clua)
@@ -2244,25 +2254,25 @@ par(op)
 @
 }
 
-Function \code{vegemite} in \texttt{vegan} produces compact
-vegetation tables.  It can take an argument \texttt{use} to arrange
-the sites (and species, if possible).  This argument can be a vector
-used to arrange sites, or it can be an ordination result, or it can be an
-\code{hclust} result or a \code{dendrogram} object.
-<<>>=
-vegemite(dune, use = oden, zero = "-")
+The classified community tables can be displayed graphically using
+\code{tabasco} function or printed in compact text form with
+\code{vegemite} in \texttt{vegan}.  These functions take an argument
+\texttt{use} to arrange the sites (and species, if possible), and
+\code{tabasco} can also display \code{dendrogram}.
+\marginpar{%
+<<fig=true,echo=false>>=
+tabasco(dune, oden)
 @
+}
+This argument can
+be a vector used to arrange sites, or it can be an ordination result,
+or it can be an \code{hclust} result or a \code{dendrogram} object.
+
 The \code{dendrogram} had no information on species, but it uses
 weigthed averages to arrange them similarly as sites.  This may not be
 optimal for a clustering results, but if the clusters are reorderd
 nicely, the results may be very satisfactory with a nicely structured
 community table.
-
-The \code{vegemite} output is very compact (hence the name), and it
-uses only one column for sites.  In this case this was automatic,
-since Dune meadow data uses class scales.  Percent cover scale can be
-transformed to traditional class scales, such as Braun-Blanquet, Domin
-or Hult--Sernander--Du~Rietz.
 
 \paragraph*{Session Info}
 
