@@ -1453,10 +1453,10 @@ becomes more similar to the unconstrained one.  When the rank of
 unconstrained component reduces towards zero, there are
 absolutely no constraints.  However, the relaxation of constraints often
 happens much earlier in first ordination axes.  If we do not have
-strict constraints, it may be
+strict constraints, it is
 better to use unconstrained ordination with vector fitting (or surface
 fitting), which allows detection of
-compositional variation for which we have not observed environmental
+compositional variation for which we have no observed environmental
 variables.  In constrained ordination it is best to reduce the number
 of constraints to just a few, say three to five.
 
@@ -1479,7 +1479,7 @@ plot(procrustes(cca(varespec), mod1))
 
 For heuristic purposes we should reduce the number of constraints to
 find important environmental variables.  In principle,
-constrained ordination only should be used with designed \textsl{a priori}
+constrained ordination is best used with designed \textsl{a priori}
 constraints.  All kind of automatic tools of model selection are
 dangerous: There may be several alternative models which are nearly
 equally good;  Small changes in data can cause large changes in
@@ -1490,46 +1490,46 @@ Significance tests are biased, because the model is selected for the
 best test performance.
 
 After all these warnings, I show how \texttt{vegan} can be used to
-automatically select constraints into model using standard \textsf{R}
-function \code{step}.  The \code{step} uses Akaike's information
-criterion (\textsc{aic}\index{AIC}) as the selection criterion.
-\textsc{Aic} is a penalized goodness-of-fit measure: the
-goodness-of-fit is basically derived from the residual (unconstrained)
-inertia penalized by the rank of the constraints.  In principle
-\textsc{aic} is based on log-Likelihood that ordination does not have.
-However, a \code{deviance} function changes the unconstrained inertia
-to Chi-squared in \code{cca} or sum of squares in \code{rda} and
-\code{capscale}.  This deviance is treated like sum of squares in
-Gaussian models.  If we have only continuous (or 1 \emph{d.f.})
-terms, this is the same as selecting variables by their contributions
-to constrained eigenvalues (\idxtext{inertia}).  With factors the
-situation is more tricky, because factors must be penalized by their
-degrees of freedom, and there is no way of knowing the magnitude of
-penalty.  The \code{step} function may still be useful in helping to
-gain insight into the data, but it should not be trusted blindly (or
-at all), but only regarded as an aid in model building.
+automatically select constraints into model using function
+\code{ordistep}.  Function works similarly as standard \textsf{R}
+function \code{text}: it can start from an empty or small model and
+add constraints (\texttt{"forward"}), or it can start from a complete
+or large model and remove constraints (\texttt{"backward"}), or it can
+alternate between adding and removing constraints
+(\texttt{"stepwise"}). The decisions are based on permutation
+tests. In \texttt{"stepwise"} model building we usually have a lower
+significance level to enter a constraint into model than to remove a
+selected variable to avoid eternal cycles. The \code{ordistep}
+function also calculates a goodness of fit statistic known as
+\idxtext{AIC}. This is calculate similarly as in linear models, but it
+in ordination it is not based on solid theory, and should be regarded
+as purely descriptive indicator of the goodness of fit.
 
-After this longish introduction the example: using \code{step} is much
-simpler than explaining how it works.  We need to give the model we
-start with, and the scope of possible models inspected.  For this we
-need another formula trick: \idxtext{formula} with only \texttt{1} as
-the constraint defines an unconstrained model.  We must define it like
-this so that we can add new terms to initially unconstrained
-model. The \textsc{aic}\index{AIC} used in model building is not based
-on a firm theory, and therefore we also ask for permutation tests at
-each step. In ideal case, all included terms should be significant and
-all excluded terms insignificant in the final model.  The
-\texttt{scope} must be given as a \texttt{list} a formula, but we can
-extract this from fitted models using function \texttt{formula}.
-The following example begins with an
-unconstrained model \texttt{mod0} and steps towards the previously
-fitted maximum model \texttt{mod1}:
+The \code{ordistep} function may be useful in helping to gain insight
+into the data, but it should not be trusted blindly (or at all), but
+only regarded as an aid in model building. In addition to
+\code{ordistep}, \texttt{vegan} also offers function \code{ordiR2step}
+that also uses $R^2$ as a criterion, and even standard \textsf{R}
+function \code{step} will work, but it does not base its model
+selection on signficance tests, and can give different results than
+\code{ordistep}.
+
+Using \code{ordistep} is much simpler than explaining how it works.
+We need to give the model we start with, and the scope of possible
+models inspected.  For this we need another formula trick:
+\idxtext{formula} with only \texttt{1} as the constraint defines an
+unconstrained model.  We must define it like this so that we can add
+new terms to initially unconstrained model. The \texttt{scope} must be
+given as a \texttt{list} a formula, but we can extract this from
+fitted models using function \texttt{formula}.  The following
+\code{ordistep} begins with an unconstrained model \texttt{mod0} and
+steps towards the previously fitted maximum model \texttt{mod1}:
 <<echo=false>>=
 op <- options(digits=7)
 @
 <<>>=
 mod0 <- cca(varespec ~ 1, varechem)
-mod <- step(mod0, scope = formula(mod1), test = "perm")
+mod <- ordistep(mod0, scope = formula(mod1))
 @
 <<echo=false>>=
 options(op)
@@ -1537,28 +1537,27 @@ options(op)
 <<>>=
 mod
 @
+
 We ended up with the same familiar model we have been using all the
 time (and now you know the reason why this model was used in the first
-place).  The \textsc{aic}\index{AIC} was based on deviance, and penalty for
-each added parameter was 2 per degree of freedom.  At every step the
-\textsc{aic} was evaluated for all possible additions (\texttt{+}) and
-removals (\texttt{-}), and the variables are listed in the order of
-\textsc{aic}.  The stepping stops when \texttt{<none>} or the current
-model is at the top.
+place).  \code{ordistep} alternated between additions (\texttt{+}) and
+removals (\texttt{-}) of variables, and the variables are listed in
+the order of \idxtext{AIC}.  The stepping stops when no variables can
+be entered in the model nor removed from the model.
 
-Model building with \code{step} is fragile, and the strategy of model
-building can change the final model.  If we start with the
-largest model (\texttt{mod1}), the final model will be different:
+Model building with automatic procedures (\code{ordistep},
+\code{ordiR2step}, \code{step}) is fragile, and the strategy of model
+building can change the final model.  If we start with the largest
+model (\texttt{mod1}), the final model will be different:
 <<>>=
-modb <- step(mod1, scope = list(lower = formula(mod0), upper = formula(mod1)), trace = 0)
+modb <- ordistep(mod1, trace = FALSE, Pout = 0.05)
 modb
 @
 
-The \textsc{aic}\index{AIC} of this model is
-\Sexpr{round(extractAIC(modb)[2],2)} which is higher (worse) than
-reached in forward selection (\Sexpr{round(extractAIC(mod)[2], 2)}).
-We supressed tracing to save some pages of output, but \code{step}
-adds its history in the result:
+We set the removal $P$-value limit to \texttt{Pout = 0.05} in
+\code{ordistep} so that all retained constraints are significant in
+the conventional sense.  We also suppressed tracing to save some pages
+of output, but \code{ordistep} adds its history in the result:
 <<>>=
 modb$anova
 @
@@ -1589,7 +1588,8 @@ There are two kind of site scores in \idxtext{constrained ordination}s:
 \item Linear combination scores\index{LC scores} \textsc{lc} which are linear
   combinations of constraining variables.
 \item Weighted averages scores \textsc{wa}\index{WA scores} which are
-  \idxtext{weighted averages} of species scores.
+  \idxtext{weighted averages} (CCA) or weighted sums of species
+  scores.
 \end{enumerate}
 These two scores are as similar as possible, and their (weighted)
 correlation is called the \idxtext{species--environment correlation}:
@@ -1613,16 +1613,16 @@ show how you can circumvent my decisions.
 The practical reason to prefer \textsc{wa} scores\index{WA scores} is
 that they are more robust against random error in environmental
 variables.  All ecological observations have random error, and
-therefore it is better to use scores that are resistant to this
-variation.  Another point is that I see \textsc{lc} scores\index{LC
-scores} as constraints: the scores are dependent only on
+therefore it is better to use scores that are resistant to randomness.
+Another point is that \textsc{lc} scores\index{LC
+scores} \emph{are} constraints: the scores are dependent only on
 environmental variables, and community composition does not influence
 them.  The \textsc{wa} scores are based on community composition, but
 so that they are as similar as possible to the constraints.  This
 duality is particularly clear when using a single factor variable as
 constraint: the \textsc{lc} scores are constant within each level of
 the factor and fall in the same point.  The \textsc{wa} scores show
-how well we can predict the factor level from community composition.
+how we can predict the factor level from community composition.
 
 The \texttt{vegan} package has a graphical function
 \code{ordispider} which (among other alternatives) will combine
@@ -1633,7 +1633,13 @@ dune.cca <- cca(dune ~ Management, dune.env)
 plot(dune.cca, display = c("lc", "wa"), type = "p")
 ordispider(dune.cca, col="blue")
 @
-The interpretation is similar as in discriminant analysis: \textsc{lc} scores\index{LC scores} give the predicted class centroids, and \textsc{wa} scores\index{WA scores} give the predicted values.  For distinct classes, there is no overlap among groups.  In general, the length of \texttt{ordispider} segments is a visual image of \idxtext{species--environment correlation}.  \marginpar{%
+
+The interpretation is similar as in discriminant analysis: \textsc{lc}
+scores\index{LC scores} give the predicted class centroids, and
+\textsc{wa} scores\index{WA scores} give the predicted values.  For
+distinct classes, there is no overlap among groups.  In general, the
+length of \texttt{ordispider} segments is a visual image of
+\idxtext{species--environment correlation}.  \marginpar{%
 <<fig=true,echo=false>>=
 plot(dune.cca, display = c("lc", "wa"), type="p")
 ordispider(dune.cca, col="blue")
@@ -1650,29 +1656,25 @@ to unit length in the constrained ordination of full rank. When these
 arrows are projected onto 2D ordination plot, they look shorter if
 they go off the plane.
 
-In \texttt{vegan} the biplot arrows are always scaled similarly
-irrespective of scaling of sites or species.  With default
-\texttt{scaling = 2}, the biplot arrows have optimal relation to
-sites, but with \texttt{scaling = 1} they rather are related to
-species.
-
 The standard interpretation of biplot arrows is that a site should be
-perpendicularly projected onto the arrow to predict the value of the
-variable.  The arrow starts from the (weighted) mean of the
-environmental variable, and the values increase towards the arrow
-head, and decrease to the opposite direction. Then we still should
-figure out the unit of change.  Function \code{calibrate.cca}
-performs this automatically in \texttt{vegan}.  Let us inspect the
-result of the \code{step} function with three constraints:
+projected onto the arrow to predict the value of the variable.  The
+arrow starts from the (weighted) mean of the environmental variable,
+and the values increase towards the arrow head, and decrease to the
+opposite direction. We still should figure out the unit of
+change.  Function \code{calibrate} performs this automatically in
+\texttt{vegan}.  Let us inspect the result of the \code{ordistep}
+function with three constraints:
 <<>>=
 pred <- calibrate(mod)
 head(pred)
 @
-Actually, this is not based on biplot arrows, but on regression
-coefficients used internally in constrained ordination.  Biplot arrows
-should only be seen as a visual approximation.  The fitting is done in
-full constrained rank as default and for all constraints
-simultaneously.  The example draws a residual plot of predictions:
+
+The calculation is not actually based on biplot arrows, but on
+regression coefficients used internally in constrained ordination.
+Biplot arrows should only be seen as a visual approximation.  The
+fitting is done in full constrained rank as default and for all
+constraints simultaneously.  The example draws a residual plot of
+predictions:
 <<a>>=
 with(varechem, plot(Al, pred[,"Al"] - Al, ylab="Prediction Error"))
 abline(h=0, col="grey")
@@ -1713,17 +1715,18 @@ sometimes they may work quite well.  In this case, \texttt{P} would
 display a linear response surface, although it was less important than
 \texttt{Al} in model building.
 
-\subsection{Conditioned or partial models}
+\subsection{Partial models with conditions}
 \label{sec:pcca}
 \index{partial ordination}
 
 The effect of some environmental variables can be removed from the
 ordination before constraining with other variables.  The analysis is
 said to be conditioned on variables, or in other words, it is partial
-after removing variation caused by some variables.  These conditioning
+after removing the effects of conditions.  These conditioning
 variables typically are ``random'' or background variables, and their
 effect is removed from the analysis based on ``fixed'' or interesting
-variables.
+variables. However, we do not have strictly random variables in
+ordination, but all variables are fitted in the same way.
 
 In \texttt{vegan}, the formula for constrained ordination can contain
 a \texttt{Condition} which specifies the variable or variables whose
@@ -1770,14 +1773,13 @@ with(dune.env, anova(dune.cca, strata = Moisture))
 Conditioned or partial models are sometimes used for decomposition of
 inertia into various components attributed to different sets of
 environmental variables.  In some cases this gives meaningful results,
-but the groups of environmental variables should be non-linearly
-independent for unbiased decomposition.  If the groups of
-environmental variables have polynomial dependencies, some of the
-components of inertia may even become negative (that should be
-impossible).  That kind of higher-order dependencies are almost
-certain to appear with high number of variables and high number of
-groups.  However, \code{varpart} performs decomposition of
-\code{rda} models among two to four components.
+but the groups of environmental variables should be independent for
+unbiased decomposition.  If the groups of environmental variables have
+polynomial dependencies, some of the components of inertia may even
+become negative.  Higher-order dependencies are almost certain to
+appear with high number of variables and high number of groups.
+However, \code{varpart} performs decomposition of \code{rda} or
+\code{dbrda} models among two to four components.
 
 %\subsection{Ordination diagnostics}
 
