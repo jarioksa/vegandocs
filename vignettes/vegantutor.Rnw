@@ -1787,32 +1787,35 @@ However, \code{varpart} performs decomposition of \code{rda} or
 
 We already discussed environmental interpretation of ordination and
 environmentally constrained ordination.  These both reduce the
-variation into an ordination space, and mainly inspect the first
+variation into ordination space, and mainly inspect the first
 dimensions.  Sometimes we may wish to analyse vegetation--environment
 relationships without ordination, or in full space.  Typically these
 methods use the dissimilarity matrix in analysis. The recommended
-method in \texttt{vegan} is \code{adonis} which implements a
-multivariate analysis of variances using distance matrices. Function
-\code{adonis} can handle both continuous and factor predictors. Other
-methods in \texttt{vegan} include multiresponse permutation procedure
-(\code{mrpp}) and analysis of similarities (\code{anosim}). Both
-of these handle only class predictors, and they are less robust
-than \code{adonis}.
+method in \texttt{vegan} is \code{adonis2} which implements a
+multivariate analysis of variances using community dissimilarity
+matrices. The \code{adonis2} is similar to
+\idxtext{distance-based redundancey analysis} (\code{dbdra}):
+it is based on the same
+method, but skips actual ordination and only finds the goodness-of-fit
+statistics.  Function \code{adonis2} can handle both continuous and
+factor predictors. Other methods in \texttt{vegan} include
+multiresponse permutation procedure (\code{mrpp}) and analysis of
+similarities (\code{anosim}). Both of these handle only class
+predictors, and they are less robust than \code{adonis2}.
 
 \subsection{adonis: Multivariate ANOVA based on dissimilarities}
 
-Function \code{adonis} partitions dissimilarities for the sources of
+Function \code{adonis2} partitions dissimilarities for the sources of
 variation, and uses permutation tests to inspect the significances of
-those partitions. With Euclidean
-distances\index{dissimilarity!Euclidean} the results are similar as in
-\code{rda} and its \code{anova} permutation tests, but
-\code{adonis} can handle any dissimilarity objects.
+those partitions. The results are similar as in \code{dbrda} and its
+\code{anova} permutation tests, and with Euclidean
+distances\index{dissimilarity!Euclidean} both are equal to \code{rda}.
 
-The example uses \code{adonis} to study \idxtext{beta diversity}
+The example uses \code{adonis2} to study \idxtext{beta diversity}
 between Management classes in the dune meadow data. We define beta
 diversity as the slope of species-area curve, or the exponent $z$ of
 the Arrhenius model\index{dissimilarity!Arrhenius} where the number of
-species $S$ is dependent on the size $X$ of the study area.
+species $S$ is dependent on the area (size) $X$ of the study area.
 \marginpar{
 \begin{align*}
 S =& k X^z\\
@@ -1832,32 +1835,32 @@ differences. The Arrhenius $z$ can be directly found with function
 <<>>=
 betad <- betadiver(dune, "z")
 @
-Function \code{adonis} can use formula interface, and the dependent
+Function \code{adonis2} can use formula interface, and the dependent
 data can be either dissimilarities or data frame, and in the latter
-case \code{adonis} uses \code{vegdist} to find the dissimilarities.
+case \code{adonis2} uses \code{vegdist} to find the dissimilarities.
 <<>>=
-adonis(betad ~ Management, dune.env, perm=200)
+adonis2(betad ~ Management, dune.env)
 @
-The models can be more complicated, and sequential test of
-permutational ANOVA\index{permutation tests} is performed if there are
+The models can be more complicated, and sequential or marginal tests of
+permutational ANOVA\index{permutation tests} can be performed if there are
 several parameters:
 <<>>=
-adonis(betad ~ A1*Management, dune.env, perm = 200)
+adonis2(betad ~ A1*Management, dune.env)
 @
 
 \subsection{Homogeneity of groups and beta diversity}
 
-Function \code{adonis} studied the differences in the group means,
+Function \code{adonis2} studied the differences in the group means,
 but function \code{betadisper} studies the differences in group
-homogeneities. Function \code{adonis} was analogous to multivariate
-analysis of variance, and \code{betadisper} is analogous to
-\idxtext{Levene's test} of the equality of variances.
+homogeneities, or variation within groups. Function \code{adonis2} was
+analogous to multivariate analysis of variance, and \code{betadisper}
+is analogous to \idxtext{Levene's test} of the equality of variances.
 
-The example continues the analysis of the previous section and inspects
-the \idxtext{beta diversity}. The function can only use one factor as an
-independent variable, and it does not know the formula interface, so
-that we need to \code{attach} the data frame or use \code{with} to
-make the factor visible to the function:
+The example continues the analysis of the previous section and
+inspects the \idxtext{beta diversity}. The function can only use one
+factor as an independent variable, and it does not know the formula
+interface, so that we need to use \code{with} to make the factor
+visible to the function:
 <<>>=
 mod <- with(dune.env,  betadisper(betad, Management))
 mod
@@ -1896,24 +1899,24 @@ TukeyHSD(mod)
 \index{Mantel test}
 
 Mantel test compares two sets of dissimilarities.  Basically, it is
-the correlation between dissimilarity entries.  As there are
+the correlation between dissimilarity matrices.  As there are
 $N(N-1)/2$ dissimilarities among $N$ objects, normal
 significance tests are not applicable.  Mantel developed asymptotic
-test statistics, but \texttt{vegan} function \texttt{mantel} uses
+test statistics, but \texttt{vegan} function \code{mantel} uses
 \idxtext{permutation tests}.
 
 In this example we study how well the lichen pastures
 (\texttt{varespec}) correspond to the environment.  We have already
 used vector fitting after ordination.  However, the ordination and
 environment may be non-linearly related, and we try now with function
-\code{mantel}.  We first perform a \textsc{pca}\index{principal
-components analysis} of environmental
+\code{mantel}.  We first perform a
+\textsc{pca}\index{principal components analysis} of environmental
 variables, and then compute dissimilarities for first principal
 components.  We use standard \textsf{R} function \code{prcomp}, but
 \code{princomp} or \code{rda} will work as well.  Function
-\texttt{scores} in \texttt{vegan} will work with all these methods.
+\code{scores} in \texttt{vegan} will work with all these methods.
 The following uses the same standardizations for community
-dissimilarities as previously used in \texttt{metaMDS}.
+dissimilarities as previously used in \code{metaMDS}.
 <<>>=
 pc <- prcomp(varechem, scale = TRUE)
 pc<- scores(pc, display = "sites", choices = 1:4)
@@ -1959,7 +1962,7 @@ plot(pro)
 pro
 @
 The significance is assessed by \idxtext{permutation tests}.  The statistic is
-now Procrustes correlation $r$ derived from the symmetric Procrustes
+Procrustes correlation $r$ derived from the symmetric Procrustes
 residual $m^2$.
 \marginpar{%
 <<fig=true,echo=false>>=
