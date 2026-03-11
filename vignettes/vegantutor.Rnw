@@ -862,12 +862,12 @@ identify(pl, "sp", labels=shnam)
 \marginpar{
 <<fig=true,echo=false>>=
 <<a>>
-text(pl, "sp", lab=shnam, sel=c(8,25,64,91,124,148,149,171,202),
-cex=0.7, pos=4)
-text(pl, "sp", lab=shnam, sel=c(126,136,143,157,158,173,176,181,211),
-cex=0.7, pos=2)
-text(pl, "sp", lab=shnam, sel=c(12,33,80), pos=1, cex=0.7)
-text(pl, "sp", lab=shnam, sel=c(1,29), pos=3, cex=0.7)
+k <- c(8,25,64,91,124,148,149,171,202)
+text(pl, "sp", lab=shnam[k], sel=k, cex=0.7, pos=4)
+k <- c(126,136,143,157,158,173,176,181,211)
+text(pl, "sp", lab=shnam[k], sel=k, cex=0.7, pos=2)
+text(pl, "sp", lab=shnam[c(12,33,80)], sel=c(12,33,80), pos=1, cex=0.7)
+text(pl, "sp", lab=shnam[c(1,29)], sel=c(1,29), pos=3, cex=0.7)
 @
 }
 
