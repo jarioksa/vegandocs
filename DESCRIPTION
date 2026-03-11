@@ -1,10 +1,10 @@
 Package: vegandocs
 Type: Package
 Title: Tutorials for 'vegan'
-Version: 1.0
+Version: 1.0-1
 Authors@R: person("Jari","Oksanen", role=c("aut","cre"),
-   email="jari.oksanen@oulu.fi")
-Depends: vegan (>= 2.5), vegan3d, MASS
+   email="jhoksane@bmail.com")
+Depends: vegan (>= 2.7.1), vegan3d, MASS
 Description: Tutorial for using 'vegan'. Currently only on ordination with
    a brief side track to classification. 
 License: CC BY-SA + file LICENSE
